@@ -57,4 +57,5 @@ MVP에서는 **ESG 웹사이트 초기화면에 QR을 배치**하여
 | **팀원** | 최윤환 | [choiyounhwan](https://github.com/YnH10) |
 | **팀원** | 허태범 | [TreeBomb-01](https://github.com/TreeBomb-01) |
 | **팀원** | 최성원 | [SeongWon1123](https://github.com/SeongWon1123) |
+| **팀원** | 최수용 | [harry9664-WD]([https://github.com/SeongWon1123](https://github.com/harry9664-WD)) |
 
