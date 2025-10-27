@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: spring
+
+  security:
+    user:
+      name: admin
+      password: 1234
+
+  datasource:
+    url: ${SPRING_DATA_DB_URL}
+    username: ${SPRING_DATA_DB_USERNAME}
+    password: ${SPRING_DATA_DB_PASSWORD}
+    driver-class-name: ${SPRING_DATA_DB_DRIVER}
+
+  config:
+    import: optional:file:.env[.properties]
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_FROM}
+    password: ${EMAIL_APP_KEY}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+server:
+  port: 8081
