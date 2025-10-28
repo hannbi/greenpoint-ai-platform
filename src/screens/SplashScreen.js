@@ -5,7 +5,7 @@ export default function SplashScreen({ navigation }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace('Login');
-    }, 5000); // 5초 뒤 로그인으로 이동
+    }, 2000); // 2초 뒤 로그인으로 이동
     return () => clearTimeout(timer);
   }, [navigation]);
 
