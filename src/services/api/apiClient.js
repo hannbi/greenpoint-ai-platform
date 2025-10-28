@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAccessToken } from '../tokenStorage';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:8082',
@@ -8,8 +9,17 @@ const apiClient = axios.create({
   },
 });
 
+// 요청 시 자동으로 토큰 추가
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // AsyncStorage에서 토큰 가져오기
+    const token = await getAccessToken();
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('Authorization 헤더 추가됨:', token.substring(0, 20) + '...');
+    }
+    
     return config;
   },
   (error) => {
