@@ -7,7 +7,7 @@ const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // 로딩 상태 추가
+  const [loading, setLoading] = useState(true); // 로딩 상태
 
   useEffect(() => {
     const loadUser = async () => {
