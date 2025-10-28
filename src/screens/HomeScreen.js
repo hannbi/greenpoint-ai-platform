@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useUser } from '../context/UserContext';
 
 export default function HomeScreen({ navigation }) {
-    const userName = "한비";
-    const userGrade = "새싹등급";
-    const userPoints = 32600;
+    const { user } = useUser();
+
+    const userName = user ? user.nickname : "로그인 필요";
+    const userGrade = "새싹등급"; //고쳐야함
+    const userPoints = user ? user.points : 0;
 
     const [modalVisible, setModalVisible] = useState(false);
 

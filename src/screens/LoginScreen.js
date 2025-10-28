@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { authApi } from '../services/api/authApi';
 import { useApi } from '../hooks/useApi';
-import { tokenStorage } from '../services/tokenStorage';
+import { useUser } from '../context/UserContext'; // useUser 훅 가져오기
 
 export default function LoginScreen({navigation}) {
   const [email, setEmail] = useState('');
@@ -10,16 +10,14 @@ export default function LoginScreen({navigation}) {
   const [isFocusedEmail, setFocusedEmail] = useState(false);
   const [isFocusedPw, setFocusedPw] = useState(false);
 
-  // API 훅
+  const { login } = useUser(); // UserContext의 login 함수 사용
   const { execute: loginUser, loading: loginLoading } = useApi(authApi.login);
 
   const handleLogin = async () => {
-    // 입력 검증
     if (!email || !password) {
       Alert.alert('입력 오류', '이메일과 비밀번호를 입력해주세요.');
       return;
     }
-
     if (!email.includes('@')) {
       Alert.alert('입력 오류', '올바른 이메일 형식을 입력해주세요.');
       return;
@@ -28,30 +26,19 @@ export default function LoginScreen({navigation}) {
     try {
       const response = await loginUser(email, password);
       
-      // Authorization 헤더에서 토큰 추출
       const authHeader = response.headers?.authorization || response.headers?.Authorization;
       const token = authHeader?.replace('Bearer ', '');
       
-      // 토큰 저장
       if (token) {
-        await tokenStorage.saveAccessToken(token);
-        console.log('로그인 성공 - 토큰 저장 완료');
+        await login(token); // UserContext의 login 함수 호출
+        console.log('로그인 성공 - 컨텍스트 업데이트 완료');
+        
+        // 메인 화면으로 이동
+        navigation.replace('Main');
+        
+      } else {
+        throw new Error('토큰을 받지 못했습니다.');
       }
-      
-      // 웹에서도 보이도록 alert() 사용 - 개발용도
-      if (typeof window !== 'undefined') {
-        window.alert('로그인 성공! 환영합니다!');
-      }
-      
-      Alert.alert('로그인 성공', '환영합니다!', [
-        {
-          text: '확인',
-          onPress: () => {
-            // 메인 화면으로 이동 - 나중에 여기다 하시면 됩니다
-            // navigation.navigate('Main');
-          },
-        },
-      ]);
       
     } catch (error) {
       console.error('로그인 에러:', error);

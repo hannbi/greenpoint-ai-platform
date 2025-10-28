@@ -9,9 +9,23 @@ const apiClient = axios.create({
   },
 });
 
+// 토큰이 필요 없는 경로 목록
+const noAuthPaths = [
+  '/auth/email/check',
+  '/auth/email/send',
+  '/auth/email/verify',
+  '/auth/signup',
+  '/auth/login',
+];
+
 // 요청 시 자동으로 토큰 추가
 apiClient.interceptors.request.use(
   async (config) => {
+    // 요청 경로가 토큰이 필요 없는 경로인지 확인
+    if (noAuthPaths.some(path => config.url.includes(path))) {
+      return config;
+    }
+
     // AsyncStorage에서 토큰 가져오기
     const token = await getAccessToken();
     

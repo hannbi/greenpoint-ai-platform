@@ -1,13 +1,26 @@
 import React, { useEffect } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
+import { useUser } from '../context/UserContext';
 
 export default function SplashScreen({ navigation }) {
+  const { user, loading } = useUser();
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Login');
-    }, 5000); // 5초 뒤 로그인으로 이동
-    return () => clearTimeout(timer);
-  }, [navigation]);
+    // 로딩이 완료되면 로그인 상태에 따라 화면 이동
+    if (!loading) {
+      const timer = setTimeout(() => {
+        if (user) {
+          // 로그인된 사용자는 메인 화면으로
+          navigation.replace('Main');
+        } else {
+          // 로그인 안된 사용자는 로그인 화면으로
+          navigation.replace('Login');
+        }
+      }, 2000); // 2초 동안 스플래시 화면 표시
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading, user, navigation]);
 
   return (
     <View style={styles.container}>
