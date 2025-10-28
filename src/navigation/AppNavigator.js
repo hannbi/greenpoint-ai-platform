@@ -7,6 +7,10 @@ import LoginScreen from '../screens/LoginScreen';
 import SignUpStep1 from '../screens/SignUpStep1';
 import SignUpStep2 from '../screens/SignUpStep2';
 import SignUpStep3 from '../screens/SignUpStep3';
+import MyPageScreen from '../screens/MyPageScreen';
+import RecognizeScreen from '../screens/RecognizeScreen';
+
+import TabNavigator from './TabNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,7 +41,7 @@ export default function AppNavigator() {
 
         {/* 회원가입 */}
         <Stack.Screen
-          name="SignUpStep1" 
+          name="SignUpStep1"
           component={SignUpStep1}
           options={{
             title: '회원가입',
@@ -49,7 +53,7 @@ export default function AppNavigator() {
           }}
         />
         <Stack.Screen
-          name="SignUpStep2" 
+          name="SignUpStep2"
           component={SignUpStep2}
           options={{
             title: '회원가입',
@@ -61,7 +65,7 @@ export default function AppNavigator() {
           }}
         />
         <Stack.Screen
-          name="SignUpStep3" 
+          name="SignUpStep3"
           component={SignUpStep3}
           options={{
             title: '회원가입',
@@ -73,7 +77,24 @@ export default function AppNavigator() {
           }}
         />
 
-    
+        {/* 로그인 후 홈*/}
+        <Stack.Screen name="Main" component={TabNavigator} options={{ headerShown: false }} />
+
+        <Stack.Screen
+          name="MyPageScreen"
+          component={MyPageScreen}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="RecognizeScreen"
+          component={RecognizeScreen}
+          options={{ headerShown: false }}
+        />
+
+
+
+
       </Stack.Navigator>
     </NavigationContainer>
   );

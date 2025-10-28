@@ -121,7 +121,7 @@ export default function LoginScreen({navigation}) {
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.kakaoBtn}>
+      <TouchableOpacity style={styles.kakaoBtn} onPress={() => navigation.replace('Main')}>
         <Image
           source={require('../../assets/kakao_login.png')}
           style={styles.kakaoFull}
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   loginBtn: {
     backgroundColor: '#078C5A',
-    width: '85%',
+    width: '80%',
     height: 45,
     borderRadius: 8,
     justifyContent: 'center',
