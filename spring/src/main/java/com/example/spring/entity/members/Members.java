@@ -23,6 +23,7 @@ public class Members {
     private String name;
     private String nickname;
     private String profile;
+    private String org;
 
     private String role;
 

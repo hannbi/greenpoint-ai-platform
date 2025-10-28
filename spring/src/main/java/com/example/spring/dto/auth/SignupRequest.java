@@ -8,6 +8,8 @@ public record SignupRequest(
         @Email @NotBlank String email,
         @Size(min=8, max=64) String password,
         @Size(max=30) String name,
-        @NotBlank String ticket
+        @NotBlank String ticket,
+        @NotBlank String nickname,
+        @NotBlank String org
 ) {}
 

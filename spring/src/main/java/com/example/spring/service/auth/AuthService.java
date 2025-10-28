@@ -82,9 +82,10 @@ public class AuthService {
                 .email(email)
                 .pwd(pe.encode(request.password()))
                 .name(request.name())
-                .nickname("퍼즐이")
+                .nickname(request.nickname())
                 .profile("default.png")
                 .role("ROLE_USER")
+                .org(request.org())
                 .build();
 
         redis.delete(key);

@@ -26,4 +26,4 @@ spring:
       mail.smtp.starttls.enable: true
 
 server:
-  port: 8081
+  port: 8082
