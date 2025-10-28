@@ -44,6 +44,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
 
     private static final long RT_TTL_SEC = Duration.ofDays(30).toSeconds();
+    private final JwtTokenProvider jwtTokenProvider;
 
 
     @Transactional
@@ -159,6 +160,46 @@ public class AuthService {
     public void logout(String accessToken, String deviceId) {
         Long userId = jwt.getUserId(accessToken);
         refreshTokenService.logoutOne(userId, deviceId);
+    }
+
+    @Transactional
+    public AuthResult issueTokensFor(Long userId, String deviceId, String userAgent, String ip) {
+        Members m = membersRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("user not found: " + userId));
+
+        List<String> roles = List.of(m.getRole().split(" "));
+
+        String accessToken = jwt.createAccessToken(
+                m.getId(),
+                m.getNickname(),
+                roles,
+                m.getPoints(),
+                m.getTier_id()
+        );
+
+        String finalDeviceId = (deviceId != null && !deviceId.isBlank())
+                ? deviceId
+                : UUID.randomUUID().toString();
+
+        String refreshToken = UUID.randomUUID() + "." + UUID.randomUUID();
+        String rtJti = refreshTokenService.issue(
+                userId,              // 대상 사용자
+                finalDeviceId,       // 디바이스 ID
+                refreshToken,        // 원문 RT
+                RT_TTL_SEC,          // TTL (네 상수 그대로)
+                userAgent,           // UA
+                ip                   // IP
+        );
+
+
+        return new AuthResult(
+                userId,
+                finalDeviceId,
+                accessToken,
+                refreshToken,
+                rtJti,
+                roles
+        );
     }
 
     // 전체 로그아웃

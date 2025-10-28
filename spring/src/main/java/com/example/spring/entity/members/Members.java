@@ -27,6 +27,8 @@ public class Members {
     private int points;
     private float total_co2_saved;
     private int tier_id;
+    private String signupProvider;
+    private int passwordSet;
 
     private String role;
 
