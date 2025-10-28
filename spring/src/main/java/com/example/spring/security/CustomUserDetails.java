@@ -17,6 +17,8 @@ public class CustomUserDetails implements UserDetails {
     private final String email;
     private final String password;
     private final String nickname;
+    private final int points;
+    private final int tier_id;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(Members members) {
@@ -25,6 +27,8 @@ public class CustomUserDetails implements UserDetails {
         this.password = members.getPwd();
         this.nickname = Optional.ofNullable(members.getNickname()).orElse("");
         this.authorities = List.of(new SimpleGrantedAuthority(Optional.ofNullable(members.getRole()).orElse("ROLE_USER")));
+        this.points = members.getPoints();
+        this.tier_id = members.getTier_id();
     }
 
     @Override

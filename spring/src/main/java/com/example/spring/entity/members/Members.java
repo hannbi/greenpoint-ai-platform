@@ -24,6 +24,9 @@ public class Members {
     private String nickname;
     private String profile;
     private String org;
+    private int points;
+    private float total_co2_saved;
+    private int tier_id;
 
     private String role;
 

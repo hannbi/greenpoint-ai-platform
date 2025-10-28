@@ -86,6 +86,7 @@ public class AuthService {
                 .profile("default.png")
                 .role("ROLE_USER")
                 .org(request.org())
+                .tier_id(1)
                 .build();
 
         redis.delete(key);
@@ -105,18 +106,24 @@ public class AuthService {
         Long userId;
         String nickname;
         List<String> roles;
+        int points;
+        int user_tier;
         if (principal instanceof CustomUserDetails cud) {
             userId = cud.getId();
             nickname = cud.getNickname();
             roles = cud.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            points = cud.getPoints();
+            user_tier = cud.getTier_id();
         } else {
             userId = Long.valueOf(auth.getName());
             nickname = membersRepository.findNicknameById(userId).orElse("퍼즐이");
             roles = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            points = 0;
+            user_tier = 1;
         }
 
         // AT 생성
-        String accessToken = jwt.createAccessToken(userId, nickname, roles);
+        String accessToken = jwt.createAccessToken(userId, nickname, roles,points, user_tier);
 
         // RT 생성 & Redis 저장 (원문은 클라로, 서버에는 해시)
         String deviceId = deviceIdCookie != null ? deviceIdCookie : UUID.randomUUID().toString();
@@ -143,8 +150,8 @@ public class AuthService {
 
         // 새 AT
         var roles = jwt.getRoles(oldAccessToken);
-        String nickname = membersRepository.findNicknameById(userId).orElse("퍼즐이"); //닉네임 변경을 대비한 데이터베이스 조회
-        String newAccessToken = jwt.createAccessToken(userId, nickname, roles);
+        Members member = membersRepository.findById(userId).orElse(null); //닉네임 변경을 대비한 데이터베이스 조회
+        String newAccessToken = jwt.createAccessToken(userId, member.getNickname(), roles, member.getPoints(), member.getTier_id());
 
         return new AuthResult(userId, deviceId, newAccessToken, newRefreshToken, null, roles);
     }
