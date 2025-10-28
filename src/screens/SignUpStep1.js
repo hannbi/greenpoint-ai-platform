@@ -1,29 +1,62 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, Image, Pressable } from 'react-native';
+import { authApi } from '../services/api/authApi';
+import { useApi } from '../hooks/useApi';
 
 export default function SignUpStep1({ navigation }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [isVerified, setVerified] = useState(false);
   const [modalType, setModalType] = useState(null);
+  const [verificationTicket, setVerificationTicket] = useState(null);
+  
 
-  const handleCheck = () => {
+  const { execute: checkEmail, loading: checkLoading } = useApi(authApi.checkEmail);
+  const { execute: sendCode, loading: sendLoading } = useApi(authApi.sendVerificationCode);
+  const { execute: verifyCode, loading: verifyLoading } = useApi(authApi.verifyCode);
+
+  const handleCheck = async () => {
     if (!email.includes('@') || !email.includes('.')) {
       setModalType('error');
       return;
     }
-    setModalType('verify');
+
+    try{
+      await checkEmail(email);
+      sendCode(email);
+
+      setModalType('verify');
+    } catch (error) {
+      alert(error.message || '이메일 확인에 실패했습니다.');
+    }
+
+    
   };
 
-  const handleVerify = () => {
-    if (code.trim() !== '') {
+  const handleVerify = async () => {
+    if (code.trim() === '') {
+      alert('인증 코드를 입력해주세요.');
+      return;
+    }
+    try {
+      const response = await verifyCode(email, code);
+      
+      // 인증 성공 - ticket 저장
+      setVerificationTicket(response.ticket);
       setVerified(true);
       setModalType(null);
+    } catch (error) {
+      alert(error.message || '인증에 실패했습니다.');
     }
   };
 
   const handleNext = () => {
-    if (isVerified) navigation.navigate('SignUpStep2');
+    if (isVerified && verificationTicket) {
+      navigation.navigate('SignUpStep2', { 
+        email, 
+        verificationTicket 
+      });
+    }
   };
 
   const handleResend = () => {

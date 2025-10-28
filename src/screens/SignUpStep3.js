@@ -9,10 +9,17 @@ import {
   Image,
   FlatList,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { authApi } from '../services/api/authApi';
+import { useApi } from '../hooks/useApi';
 
-export default function SignUpStep3({ navigation }) {
+export default function SignUpStep3({ navigation, route }) {
+  // 이전 단계에서 전달받은 데이터
+  const { email, verificationTicket, password, nickname } = route.params || {};
+  
   const [organization, setOrganization] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -20,6 +27,9 @@ export default function SignUpStep3({ navigation }) {
   const [agreeService, setAgreeService] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeLocation, setAgreeLocation] = useState(false);
+
+  // API 훅
+  const { execute: signupUser, loading: signupLoading } = useApi(authApi.signup);
 
   const dummyData = ['신도림푸르지오 아파트', '신라호텔', '신한금융그룹', '신한대학교'];
 
@@ -47,9 +57,32 @@ export default function SignUpStep3({ navigation }) {
     setAgreeLocation(newVal);
   };
 
-  const handleComplete = () => {
-    alert('회원가입이 완료되었습니다!');
-    navigation.navigate('Login');
+  const handleComplete = async () => {
+    if (!isFormValid) return;
+
+    try {
+      // 최종 회원가입 API 호출
+      const signupData = {
+        email: email,
+        password: password,
+        nickname: nickname,
+        ticket: verificationTicket,
+        org: organization, // 소속명
+      };
+
+      await signupUser(signupData);
+
+      // 회원가입 성공
+      Alert.alert('회원가입 완료', '회원가입이 완료되었습니다!', [
+        {
+          text: '확인',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]);
+    } catch (error) {
+      // 에러 처리
+      Alert.alert('회원가입 실패', error.message || '회원가입에 실패했습니다.');
+    }
   };
 
   const isFormValid = organization && agreeService && agreePrivacy && agreeLocation;
@@ -148,10 +181,14 @@ export default function SignUpStep3({ navigation }) {
       {/* 회원가입 완료 버튼 */}
       <TouchableOpacity
         style={[styles.completeBtn, isFormValid ? styles.completeActive : {}]}
-        disabled={!isFormValid}
+        disabled={!isFormValid || signupLoading}
         onPress={handleComplete}
       >
-        <Text style={styles.completeText}>회원가입 완료</Text>
+        {signupLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.completeText}>회원가입 완료</Text>
+        )}
       </TouchableOpacity>
 
       {/* 직접입력 모달 */}

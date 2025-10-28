@@ -1,11 +1,63 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { authApi } from '../services/api/authApi';
+import { useApi } from '../hooks/useApi';
+import { tokenStorage } from '../services/tokenStorage';
 
 export default function LoginScreen({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isFocusedEmail, setFocusedEmail] = useState(false);
   const [isFocusedPw, setFocusedPw] = useState(false);
+
+  // API 훅
+  const { execute: loginUser, loading: loginLoading } = useApi(authApi.login);
+
+  const handleLogin = async () => {
+    // 입력 검증
+    if (!email || !password) {
+      Alert.alert('입력 오류', '이메일과 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      Alert.alert('입력 오류', '올바른 이메일 형식을 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await loginUser(email, password);
+      
+      // Authorization 헤더에서 토큰 추출
+      const authHeader = response.headers?.authorization || response.headers?.Authorization;
+      const token = authHeader?.replace('Bearer ', '');
+      
+      // 토큰 저장
+      if (token) {
+        await tokenStorage.saveAccessToken(token);
+        console.log('로그인 성공 - 토큰 저장 완료');
+      }
+      
+      // 웹에서도 보이도록 alert() 사용 - 개발용도
+      if (typeof window !== 'undefined') {
+        window.alert('로그인 성공! 환영합니다!');
+      }
+      
+      Alert.alert('로그인 성공', '환영합니다!', [
+        {
+          text: '확인',
+          onPress: () => {
+            // 메인 화면으로 이동 - 나중에 여기다 하시면 됩니다
+            // navigation.navigate('Main');
+          },
+        },
+      ]);
+      
+    } catch (error) {
+      console.error('로그인 에러:', error);
+      Alert.alert('로그인 실패', error.message || '이메일 또는 비밀번호를 확인해주세요.');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -26,6 +78,9 @@ export default function LoginScreen({navigation}) {
           onChangeText={setEmail}
           onFocus={() => setFocusedEmail(true)}
           onBlur={() => setFocusedEmail(false)}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          editable={!loginLoading}
         />
       </View>
 
@@ -40,6 +95,7 @@ export default function LoginScreen({navigation}) {
           onFocus={() => setFocusedPw(true)}
           onBlur={() => setFocusedPw(false)}
           secureTextEntry
+          editable={!loginLoading}
         />
       </View>
 
@@ -53,8 +109,16 @@ export default function LoginScreen({navigation}) {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.loginBtn}>
-        <Text style={styles.loginText}>로그인</Text>
+      <TouchableOpacity 
+        style={styles.loginBtn}
+        onPress={handleLogin}
+        disabled={loginLoading}
+      >
+        {loginLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.loginText}>로그인</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.kakaoBtn}>

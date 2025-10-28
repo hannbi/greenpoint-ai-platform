@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
-export default function SignUpStep2({ navigation }) {
+export default function SignUpStep2({ navigation, route }) {
+  // 이전 단계에서 전달받은 데이터
+  const { email, verificationTicket } = route.params || {};
+  
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [nickname, setNickname] = useState('');
@@ -19,7 +22,21 @@ export default function SignUpStep2({ navigation }) {
   const isFormValid = isSamePw && nickname && !nicknameTaken;
 
   const handleNext = () => {
-    if (isFormValid) navigation.navigate('SignUpStep3');
+    if (!isFormValid) return;
+
+    // 비밀번호 유효성 검사 (최소 8자, 영문+숫자 조합 등)
+    if (password.length < 8) {
+      Alert.alert('오류', '비밀번호는 최소 8자 이상이어야 합니다.');
+      return;
+    }
+
+    // Step3로 데이터 전달 (아직 회원가입 API 호출 안함)
+    navigation.navigate('SignUpStep3', {
+      email,
+      verificationTicket,
+      password,
+      nickname,
+    });
   };
 
   return (
