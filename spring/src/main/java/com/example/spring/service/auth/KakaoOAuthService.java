@@ -32,10 +32,10 @@ public class KakaoOAuthService {
     private final AuthService authService; // 기존 AT/RT 발급 재사용
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    @Value("${kakao.client-id}") String clientId;
+    @Value("${KAKAO_CLIENT_ID}") String clientId;
     @Value("${kakao.client-secret:}") String clientSecret;
-    @Value("${kakao.token-uri:https://kauth.kakao.com/oauth/token}") String tokenUri;
-    @Value("${kakao.userinfo-uri:https://kapi.kakao.com/v2/user/me}") String userinfoUri;
+    @Value("${KAKAO_TOKEN_URI}") String tokenUri;
+    @Value("${KAKAO_USERINFO_URI}") String userinfoUri;
 
     @Transactional
     public AuthResult loginOrSignup(@Valid KakaoAuthRequest req, String userAgent, String ip) {
@@ -91,7 +91,6 @@ public class KakaoOAuthService {
         if (clientSecret != null && !clientSecret.isBlank()) form.add("client_secret", clientSecret);
         form.add("redirect_uri", req.redirectUri());
         form.add("code", req.code());
-        if (req.codeVerifier() != null) form.add("code_verifier", req.codeVerifier());
 
         return restClient.post()
                 .uri(tokenUri)
