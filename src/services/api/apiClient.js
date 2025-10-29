@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAccessToken } from '../tokenStorage';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8082',
+  baseURL: 'http://10.132.60.124:8082',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -16,48 +16,93 @@ const noAuthPaths = [
   '/auth/email/verify',
   '/auth/signup',
   '/auth/login',
+  '/auth/social/kakao',
+  '/auth/refresh',
 ];
 
 // 요청 시 자동으로 토큰 추가
 apiClient.interceptors.request.use(
   async (config) => {
-    // 요청 경로가 토큰이 필요 없는 경로인지 확인
-    if (noAuthPaths.some(path => config.url.includes(path))) {
-      return config;
+    if (!noAuthPaths.some(path => config.url.includes(path))) {
+      const at = await tokenStorage.getAccessToken();
+      if (at) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${at}`;
+      }
     }
-
-    // AsyncStorage에서 토큰 가져오기
-    const token = await getAccessToken();
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log('Authorization 헤더 추가됨:', token.substring(0, 20) + '...');
-    }
-    
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
+// 401 동시 처리 큐
+let isRefreshing = false;
+let subscribers = [];
+const subscribe = (cb) => subscribers.push(cb);
+const onRefreshed = (newAt) => { subscribers.forEach(cb => cb(newAt)); subscribers = []; };
+
+async function refreshAccessToken() {
+  if (isRefreshing) {
+    return new Promise((resolve) => subscribe(resolve));
+  }
+  isRefreshing = true;
+  try {
+    const at = await tokenStorage.getAccessToken();
+    const deviceId = await tokenStorage.getDeviceId();
+    if (!deviceId) throw new Error('NO_DEVICE_ID');
+
+    const res = await axios.post(
+      `${API_BASE}/auth/refresh`,
+      { deviceId },
+      {
+        // 만료된 AT라도 서버가 서명만 검증해서 userId 추출 가능해야 함(서버 구현 필수)
+        headers: at ? { Authorization: `Bearer ${at}` } : {},
+      }
+    );
+
+    const { accessToken } = res.data; // 서버가 새 AT만 내려줌(정책: RT는 미노출)
+    if (accessToken) {
+      await tokenStorage.saveAccessToken(accessToken);
+    }
+    onRefreshed(accessToken);
+    return accessToken;
+  } finally {
+    isRefreshing = false;
+  }
+}
 
 apiClient.interceptors.response.use(
   (response) => {
     if (response.config.url?.includes('/login')) {
-      return {
-        data: response.data,
-        headers: response.headers,
-        status: response.status,
-      };
+      return { data: response.data, headers: response.headers, status: response.status };
     }
     return response.data;
   },
-  (error) => {
+  async (error) => {
+    const original = error.config;
+    const status = error.response?.status || error.status;
+
+    if (status === 401 && !original._retry) {
+      original._retry = true;
+      try {
+        const newAt = await refreshAccessToken();
+        return new Promise((resolve) => {
+          subscribe(async () => {
+            original.headers = original.headers || {};
+            original.headers.Authorization = `Bearer ${newAt}`;
+            resolve(apiClient(original));
+          });
+        });
+      } catch (e) {
+        // 세션 만료/철회 → 클린업
+        await tokenStorage.removeAccessToken();
+        await tokenStorage.removeDeviceId();
+        return Promise.reject(e);
+      }
+    }
+
     const message = error.response?.data?.message || '서버 오류가 발생했습니다.';
-    return Promise.reject({
-      message,
-      status: error.response?.status,
-    });
+    return Promise.reject({ message, status });
   }
 );
 

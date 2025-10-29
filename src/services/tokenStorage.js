@@ -29,4 +29,29 @@ export const tokenStorage = {
       console.error('토큰 삭제 실패:', error);
     }
   },
+
+  saveDeviceId: async (id) => {
+    try {
+      await AsyncStorage.setItem('deviceId', id);
+    } catch (e) {
+      console.error('deviceId 저장 실패:', e);
+    }
+  },
+  
+  getDeviceId: async () => {
+    try {
+      return await AsyncStorage.getItem('deviceId');
+    } catch (e) {
+      console.error('deviceId 조회 실패:', e);
+      return null;
+    }
+  },
+
+  removeDeviceId: async () => {
+    try {
+      await AsyncStorage.removeItem('deviceId');
+    } catch (e) {
+      console.error('deviceId 삭제 실패:', e);
+    }
+  },
 };

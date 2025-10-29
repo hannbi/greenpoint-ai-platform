@@ -37,7 +37,8 @@ export const authApi = {
   },
 
   // 토큰 갱신 - 아직 없
-  refreshToken: async () => {
-    return apiClient.post('/auth/refresh');
-  },
+  refreshToken: async (deviceId) => apiClient.post('/auth/refresh', { deviceId }),
+
+  loginWithKakaoCode: async ({ code, codeVerifier, redirectUri, deviceId }) =>
+    apiClient.post('/auth/social/kakao', { code, codeVerifier, redirectUri, deviceId }),
 };
