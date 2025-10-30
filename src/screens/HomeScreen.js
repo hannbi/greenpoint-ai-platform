@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../context/UserContext';
 
 export default function HomeScreen({ navigation }) {
-    const { user } = useUser();
+    const { user, refreshUser } = useUser();
+
+    // 화면이 포커스될 때마다 사용자 정보 새로고침
+    useFocusEffect(
+    React.useCallback(() => {
+        console.log('HomeScreen focused → calling refreshUser');
+        refreshUser(); // 내부에서 토큰 없으면 noop 처리
+    }, [refreshUser])
+    );
 
     const userName = user ? user.nickname : "로그인 필요";
     const userGrade = "새싹등급"; //고쳐야함

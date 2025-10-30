@@ -59,14 +59,13 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  // 소셜/일반 공통: 로그인 결과로부터 세션 설정
   const loginFromAuthResult = async (result) => {
     try {
-      const token = result?.accessToken || result?.data?.accessToken;
+      const userId = result?.userId || result?.data?.userId;
       const deviceId = result?.deviceId || result?.data?.deviceId;
 
-      if (token) {
-        await login(token);
+      if (userId) {
+        await login(userId);
       }
       if (deviceId) {
         await AsyncStorage.setItem('deviceId', deviceId);
@@ -76,7 +75,6 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  // 이메일/비번 로그인
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('입력 오류', '이메일과 비밀번호를 입력해주세요.');
@@ -89,12 +87,17 @@ export default function LoginScreen({ navigation }) {
 
     try {
       const response = await loginUser(email, password);
-      const authHeader = response.headers?.authorization || response.headers?.Authorization;
-      const token = authHeader?.replace('Bearer ', '');
+      
+      const userId = response.data?.userId;
+      const deviceId = response.data?.deviceId;
 
-      if (!token) throw new Error('토큰을 받지 못했습니다.');
+      if (!userId) throw new Error('사용자 정보를 받지 못했습니다.');
 
-      await login(token);
+      if (deviceId) {
+        await AsyncStorage.setItem('deviceId', deviceId);
+      }
+
+      await login(userId);
       navigation.replace('Main');
     } catch (error) {
       Alert.alert('로그인 실패', error.message || '이메일 또는 비밀번호를 확인해주세요.');

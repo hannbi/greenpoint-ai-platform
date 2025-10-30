@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { tokenStorage } from '../services/tokenStorage';
 import { userApi } from '../services/api/userApi';
 
@@ -10,18 +10,17 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const loadUser = async () => {
-      const token = await tokenStorage.getAccessToken();
-      if (token) {
+      const userId = await tokenStorage.getUserId();
+      if (userId) {
         try {
-          const userInfo = await userApi.getUserInfo();
+          const userInfo = await userApi.getUserInfo(userId);
           setUser({
             id: userInfo.id,
             nickname: userInfo.nickname,
             points: userInfo.points
           });
         } catch (error) {
-          console.error('Failed to fetch user info', error);
-          await tokenStorage.removeAccessToken();
+          await tokenStorage.removeUserId();
         }
       }
       setLoading(false);
@@ -29,61 +28,61 @@ export const UserProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  // 기존 로컬 로그인 시
-  const login = async (token) => {
-    await tokenStorage.saveAccessToken(token);
+  const login = async (userId) => {
+    await tokenStorage.saveUserId(userId);
     try {
-      const userInfo = await userApi.getUserInfo();
+      const userInfo = await userApi.getUserInfo(userId);
       setUser({
         id: userInfo.id,
         nickname: userInfo.nickname,
         points: userInfo.points
       });
     } catch (error) {
-      console.error('Failed to process login', error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    await tokenStorage.removeAccessToken();
+    await tokenStorage.removeUserId();
     await tokenStorage.removeDeviceId();
     setUser(null);
   };
 
-  // 소셜 로그인 응답 처리
   const loginFromAuthResult = async (result) => {
-    if (!result?.accessToken) throw new Error('No accessToken in result');
+    if (!result?.userId) throw new Error('No userId in result');
 
-    await tokenStorage.saveAccessToken(result.accessToken);
+    await tokenStorage.saveUserId(result.userId);
     if (result.deviceId) {
       await tokenStorage.saveDeviceId(result.deviceId);
     }
 
     try {
-      const userInfo = await userApi.getUserInfo();
-      setUser({
-        id: userInfo.id,
-        nickname: userInfo.nickname,
-        points: userInfo.points
-      });
-    } catch (e) {
-      console.error('Failed to finalize social login', e);
-    }
-  };
-
-  // 사용자 정보 새로고침
-  const refreshUser = async () => {
-    try {
-      const userInfo = await userApi.getUserInfo();
+      const userInfo = await userApi.getUserInfo(result.userId);
       setUser({
         id: userInfo.id,
         nickname: userInfo.nickname,
         points: userInfo.points
       });
     } catch (error) {
-      console.error('Failed to refresh user info', error);
+      throw error;
     }
   };
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const userId = await tokenStorage.getUserId();
+      if (!userId) return;
+      
+      const userInfo = await userApi.getUserInfo(userId);
+      setUser({
+        id: userInfo.id,
+        nickname: userInfo.nickname,
+        points: userInfo.points
+      });
+    } catch (error) {
+      throw error;
+    }
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, login, loginFromAuthResult, logout, refreshUser, loading }}>

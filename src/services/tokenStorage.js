@@ -1,57 +1,78 @@
-// 토큰 저장을 위한 유틸리티
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+
+const storage = {
+  async setItem(key, value) {
+    if (Platform.OS === 'web') {
+      localStorage.setItem(key, value);
+    } else {
+      await AsyncStorage.setItem(key, value);
+    }
+  },
+  
+  async getItem(key) {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(key);
+    } else {
+      return await AsyncStorage.getItem(key);
+    }
+  },
+  
+  async removeItem(key) {
+    if (Platform.OS === 'web') {
+      localStorage.removeItem(key);
+    } else {
+      await AsyncStorage.removeItem(key);
+    }
+  }
+};
 
 export const tokenStorage = {
-  // 액세스 토큰 저장
-  saveAccessToken: async (token) => {
+  saveUserId: async (userId) => {
     try {
-      await AsyncStorage.setItem('accessToken', token);
+      await storage.setItem('userId', userId);
     } catch (error) {
-      console.error('토큰 저장 실패:', error);
+      throw error;
     }
   },
 
-  // 액세스 토큰 가져오기
-  getAccessToken: async () => {
+  getUserId: async () => {
     try {
-      return await AsyncStorage.getItem('accessToken');
+      return await storage.getItem('userId');
     } catch (error) {
-      console.error('토큰 가져오기 실패:', error);
       return null;
     }
   },
 
-  // 토큰 삭제 (로그아웃)
-  removeAccessToken: async () => {
+  removeUserId: async () => {
     try {
-      await AsyncStorage.removeItem('accessToken');
+      await storage.removeItem('userId');
     } catch (error) {
-      console.error('토큰 삭제 실패:', error);
+      throw error;
     }
   },
 
   saveDeviceId: async (id) => {
     try {
-      await AsyncStorage.setItem('deviceId', id);
-    } catch (e) {
-      console.error('deviceId 저장 실패:', e);
+      await storage.setItem('deviceId', id);
+    } catch (error) {
+      throw error;
     }
   },
   
   getDeviceId: async () => {
     try {
-      return await AsyncStorage.getItem('deviceId');
-    } catch (e) {
-      console.error('deviceId 조회 실패:', e);
+      return await storage.getItem('deviceId');
+    } catch (error) {
       return null;
     }
   },
 
   removeDeviceId: async () => {
     try {
-      await AsyncStorage.removeItem('deviceId');
-    } catch (e) {
-      console.error('deviceId 삭제 실패:', e);
+      await storage.removeItem('deviceId');
+    } catch (error) {
+      throw error;
     }
   },
 };
