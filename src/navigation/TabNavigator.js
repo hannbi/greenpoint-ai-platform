@@ -3,8 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Image, StyleSheet, Text } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
+import HomeStackNavigator from './HomeStackNavigator';
 import MarketScreen from '../screens/MarketScreen';
-import MapScreen from '../screens/MapScreen';
+import MapStackNavigator from './MapStackNavigator';
 import RankScreen from '../screens/RankScreen';
 import MyPageScreen from '../screens/MyPageScreen';
 
@@ -13,6 +14,7 @@ const Tab = createBottomTabNavigator();
 export default function TabNavigator() {
   return (
     <Tab.Navigator
+      initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
 
@@ -50,7 +52,7 @@ export default function TabNavigator() {
           return <Image source={icon} style={[styles.icon, { tintColor: color }]} />;
         },
 
-        // ✅ 선택된 탭만 글씨 진하게
+        // 선택된 탭만 글씨 진하게
         tabBarLabel: ({ focused, color }) => (
           <Text style={{ color, fontSize: 12, fontWeight: focused ? '700' : '400' }}>
             {route.name === 'Home' && '홈'}
@@ -62,9 +64,9 @@ export default function TabNavigator() {
         ),
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={HomeStackNavigator} />
       <Tab.Screen name="Market" component={MarketScreen} />
-      <Tab.Screen name="Map" component={MapScreen} />
+      <Tab.Screen name="Map" component={MapStackNavigator} />
       <Tab.Screen name="Rank" component={RankScreen} />
       <Tab.Screen name="MyPage" component={MyPageScreen} />
     </Tab.Navigator>

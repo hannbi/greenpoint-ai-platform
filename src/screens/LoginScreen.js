@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 
-export default function LoginScreen({navigation}) {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isFocusedEmail, setFocusedEmail] = useState(false);
@@ -9,7 +9,7 @@ export default function LoginScreen({navigation}) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      
+
       <Text style={styles.hello}>
         안녕하세요{'\n'}
         <Text style={styles.green}>Green Point</Text> 입니다
@@ -49,11 +49,11 @@ export default function LoginScreen({navigation}) {
         <Text style={styles.link}>비밀번호 찾기</Text>
         <Text style={styles.divider}>|</Text>
         <TouchableOpacity onPress={() => navigation.navigate('SignUpStep1')}>
-            <Text style={[styles.link, styles.signup]}>회원가입</Text>
+          <Text style={[styles.link, styles.signup]}>회원가입</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.loginBtn} onPress={() =>navigation.replace('Main')}>
+      <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.replace('Main')}>
         <Text style={styles.loginText}>로그인</Text>
       </TouchableOpacity>
 
@@ -75,17 +75,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingTop: 30,
     alignItems: 'center',
-  },
-  header: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 0,
-    marginBottom: 40,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111827',
   },
   hello: {
     fontSize: 25,

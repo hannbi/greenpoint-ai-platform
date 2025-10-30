@@ -28,5 +28,6 @@ REM Camera
 npm install expo-camera
 npm install expo-image-picker
 
+
 echo === 설치 완료! ===
 pause
