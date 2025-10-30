@@ -48,7 +48,7 @@ public class AuthService {
 
 
     @Transactional
-    public void signup(SignupRequest request, String uaNow, String ipNow) {
+    public void signup(SignupRequest request, String uaNow, String ipNow, String provider) {
         final String email = request.email().trim().toLowerCase(Locale.ROOT); //<- Locale.ROOT 뭔지 찾아봐야함
         final String key = "email:verify:ok:" + request.ticket();
 
@@ -88,6 +88,8 @@ public class AuthService {
                 .role("ROLE_USER")
                 .org(request.org())
                 .tier_id(1)
+                .points(0)
+                .signupProvider(provider)
                 .build();
 
         redis.delete(key);

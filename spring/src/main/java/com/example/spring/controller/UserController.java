@@ -1,15 +1,21 @@
 package com.example.spring.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.spring.security.JwtTokenProvider;
+import com.example.spring.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
 
-    @GetMapping("/test")
-    public String test() {
-        return "test";
+    private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    @GetMapping("/info")
+    public ResponseEntity<?> getInfo(@RequestParam Long id) {
+        return ResponseEntity.ok(userService.getUser(id));
     }
 }

@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_APIS = {
             "/auth/email/check", "/auth/email/send", "/auth/email/verify", "/auth/signup",
-            "/auth/login", "/auth/refresh", "/auth/logout", "/auth/social/kakao"
+            "/auth/login", "/auth/refresh", "/auth/logout", "/auth/social/kakao", "/user/info/"
     };
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
@@ -57,16 +57,7 @@ public class SecurityConfig {
 
                 // 인가 규칙
                 .authorizeHttpRequests(auth -> auth
-                        // 🔑 프리플라이트는 무조건 허용 (이거 막히면 401처럼 보일 수 있음)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // 🔓 공개 API 허용
-                        .requestMatchers(PUBLIC_APIS).permitAll()
-                        // 정적 리소스(선택)
-                        .requestMatchers(
-                                "/", "/index.html", "/static/**", "/assets/**", "/css/**", "/js/**", "/images/**"
-                        ).permitAll()
-                        // 그 외 전부 인증 필요
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
 
                 // 폼로그인/기본인증 끔 (JWT만 사용)
@@ -84,7 +75,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         // TODO: 프론트 URL로 교체 (개발 중이라면 * 임시 허용 가능)
-        cfg.setAllowedOrigins(List.of("http://localhost:8081"));
+        cfg.setAllowedOrigins(List.of("http://localhost:8081", "http://localhost:19006"));
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization","Content-Type","X-Requested-With"));
         cfg.setExposedHeaders(List.of("Authorization")); // 필요 시

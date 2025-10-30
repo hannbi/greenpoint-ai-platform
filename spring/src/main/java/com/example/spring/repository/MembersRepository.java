@@ -1,6 +1,7 @@
 package com.example.spring.repository;
 
 import com.example.spring.entity.members.Members;
+import com.example.spring.security.CustomUserDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,4 +14,6 @@ public interface MembersRepository extends JpaRepository<Members, Long> {
     Optional<String> findNicknameById(Long id);
 
     Boolean existsByEmail(String email);
+
+
 }
