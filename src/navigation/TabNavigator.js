@@ -66,7 +66,19 @@ export default function TabNavigator() {
     >
       <Tab.Screen name="Home" component={HomeStackNavigator} />
       <Tab.Screen name="Market" component={MarketScreen} />
-      <Tab.Screen name="Map" component={MapStackNavigator} />
+      <Tab.Screen 
+        name="Map" 
+        component={MapStackNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Map', {
+              screen: 'MapMain',
+              params: { filter: '전체' }
+            });
+          },
+        })}
+      />
       <Tab.Screen name="Rank" component={RankScreen} />
       <Tab.Screen name="MyPage" component={MyPageScreen} />
     </Tab.Navigator>

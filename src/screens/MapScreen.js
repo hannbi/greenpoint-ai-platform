@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import KakaoMap from '../components/KakaoMap';
 import {
   View,
@@ -11,9 +12,23 @@ import {
 
 const { width, height } = Dimensions.get('window');
 
-export default function MapScreen() {
+export default function MapScreen({ route, navigation }) {
   const [selectedFilter, setSelectedFilter] = useState('전체');
   const [searchText, setSearchText] = useState('');
+
+  // 화면이 포커스될 때마다 실행
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route?.params?.filter) {
+        // params에 filter가 있으면 해당 필터 적용
+        setSelectedFilter(route.params.filter);
+        // params 초기화 (다음에 하단바로 들어올 때 '전체'로 리셋되도록)
+      } else {
+        // params가 없으면 '전체'로 초기화
+        setSelectedFilter('전체');
+      }
+    }, [route?.params?.filter])
+  );
 
   return (
     <View style={styles.container}> 

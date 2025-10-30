@@ -176,7 +176,13 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
 
 
-                <TouchableOpacity style={styles.listItem}>
+                <TouchableOpacity 
+                    style={styles.listItem}
+                    onPress={() => navigation.navigate('Map', { 
+                        screen: 'MapMain',
+                        params: { filter: '폐의약품' }
+                    })}
+                >
                     <View style={styles.listRow}>
                         <Image source={require('../../assets/searchmedicine_icon.png')} style={styles.listIcon} />
                         <View style={styles.listTextWrap}>
@@ -186,7 +192,13 @@ export default function HomeScreen({ navigation }) {
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.listItem}>
+                <TouchableOpacity 
+                    style={styles.listItem}
+                    onPress={() => navigation.navigate('Map', {
+                        screen: 'MapMain',
+                        params: { filter: '폐건전지' }
+                    })}
+                >
                     <View style={styles.listRow}>
                         <Image source={require('../../assets/searchbattery_icon.png')} style={styles.listIcon} />
                         <View style={styles.listTextWrap}>
@@ -201,10 +213,7 @@ export default function HomeScreen({ navigation }) {
             {/* 그린 리그 */}
             <View style={styles.leagueSection}>
                 <View style={styles.leagueHeaderRow}>
-                    <Text style={styles.leagueTitle}>
-                        <Text style={{ color: '#078C5A', fontSize: 22, fontWeight: '700' }}>10월 </Text>
-                        그린 리그
-                    </Text>
+                    <Text style={styles.leagueTitle}><Text style={{ color: '#078C5A', fontSize: 22, fontWeight: '700' }}>10월</Text> 그린 리그</Text>
                 </View>
                 <Text style={styles.leagueDesc}>소속별 평균 점감률(%)을 기준으로 매월 순위를 산정하며, 1위 소속 구성원 전원에게 +100P가 추가 보상이 제공됩니다.</Text>
 
