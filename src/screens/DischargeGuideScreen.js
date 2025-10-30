@@ -11,7 +11,6 @@ import {
     KeyboardAvoidingView,
     Platform,
 } from 'react-native';
-import { Animated } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -29,7 +28,7 @@ const images = {
     clothes: require('../../assets/clothes.png'),
 };
 
-// 분리배출 올바른 가이드 (초록 카드 & 빨간 카드내용 데이터화)
+// 분리배출 올바른 가이드
 const guideCards = [
     {
         color: '#F2FEF9',
@@ -49,9 +48,8 @@ const guideCards = [
     },
 ];
 
-// 상세 모달 데이터 (원본 그대로)
+// 상세 모달 데이터
 const wasteInfo = {
-    /* ... 기존 객체 그대로 ... */
     paper: {
         title: '종이',
         tabs: ['종이', '종이팩'],
@@ -171,14 +169,9 @@ const wasteInfo = {
     },
 };
 
-export default function DischargeGuideScreen() {
-    // 바텀시트 애니메이션
-    const sheetY = useState(new Animated.Value(800))[0];
-    const openChat = () => Animated.timing(sheetY, { toValue: 0, duration: 260, useNativeDriver: true }).start();
-    const closeChat = () => Animated.timing(sheetY, { toValue: 800, duration: 240, useNativeDriver: true }).start();
-
+// ✅ 수정: navigation props 추가
+export default function DischargeGuideScreen({ navigation }) {
     const [activeIndex, setActiveIndex] = useState(0);
-    const [message, setMessage] = useState('');
     const [selected, setSelected] = useState(null);
     const [selectedSubTab, setSelectedSubTab] = useState('종이');
 
@@ -212,32 +205,23 @@ export default function DischargeGuideScreen() {
                     <Text style={styles.cardSubtitle}>{guideCards[0].subtitle}</Text>
 
                     <Image source={guideCards[0].image} style={styles.stepImage} />
-
-                    {/* Step 1~4 */}
                     <View style={styles.stepRow}>
-                        <View style={styles.stepCol}>
-                            <Text style={styles.stepTitle}>비운다</Text>
-                            <Text style={styles.stepDesc}>용기 안의 내용물을{'\n'}깨끗하게 비운다</Text>
-                        </View>
-                        <View style={styles.stepCol}>
-                            <Text style={styles.stepTitle}>헹군다</Text>
-                            <Text style={styles.stepDesc}>폐기물에 묻은 이물질,{'\n'}음식물 등을 헹군다</Text>
-                        </View>
-                        <View style={styles.stepCol}>
-                            <Text style={styles.stepTitle}>분리한다</Text>
-                            <Text style={styles.stepDesc}>라벨·뚜껑 등{'\n'}다른 재질을 분리한다</Text>
-                        </View>
-                        <View style={styles.stepCol}>
-                            <Text style={styles.stepTitle}>섞지 않는다</Text>
-                            <Text style={styles.stepDesc}>종류 및 재질별로{'\n'}섞이지 않게 배출한다</Text>
-                        </View>
+                    <View style={styles.stepCol}>
+                        <Text style={styles.stepTitle}>비운다</Text>
+                        <Text style={styles.stepDesc}>용기 안의 내용물을 깨끗하게비운다</Text>
                     </View>
-
-                    {/* 인디케이터 (카드 내부 하단 중앙) */}
-                    <View style={styles.innerIndicatorContainer}>
-                        {[0, 1].map((i) => (
-                            <View key={i} style={[styles.indicator, activeIndex === i && styles.indicatorActive]} />
-                        ))}
+                    <View style={styles.stepCol}>
+                        <Text style={styles.stepTitle}>헹군다</Text>
+                        <Text style={styles.stepDesc}>폐기물에 묻은 이물질, 음식물 등을 헹군다</Text>
+                    </View>
+                    <View style={styles.stepCol}>
+                        <Text style={styles.stepTitle}>분리한다</Text>
+                        <Text style={styles.stepDesc}>라벨·뚜껑 등 다른 재질을 분리한다</Text>
+                    </View>
+                    <View style={styles.stepCol}>
+                        <Text style={styles.stepTitle}>섞지않는다</Text>
+                        <Text style={styles.stepDesc}>종류 및 재질별로 섞이지 않게 배출한다</Text>
+                    </View>
                     </View>
                 </View>
 
@@ -246,25 +230,32 @@ export default function DischargeGuideScreen() {
                     <Text style={styles.cardTitleRed}>{guideCards[1].title}</Text>
                     <Text style={styles.cardSubtitleRed}>{guideCards[1].subtitle}</Text>
 
+                    <View style={styles.redCardContentArea}>
                     <View style={styles.badItemBox}>
                         {guideCards[1].warning.map((t, i) => (
-                            <Text key={i} style={styles.badItemText}>
-                                {t}
-                            </Text>
+                        <Text key={i} style={styles.badItemText}>
+                            {t}
+                        </Text>
                         ))}
                     </View>
-
-                    <View style={styles.innerIndicatorContainer}>
-                        {[0, 1].map((i) => (
-                            <View key={i} style={[styles.indicator, activeIndex === i && styles.indicatorActive]} />
-                        ))}
                     </View>
                 </View>
-            </ScrollView>
+                </ScrollView>
 
-            {/* 검색창 (아웃라인형 + 아이콘) */}
+                {/* 인디케이터는 여기에 */}
+                <View style={styles.indicatorWrapper}>
+                {[0, 1].map((i) => (
+                    <View key={i} style={[styles.indicator, activeIndex === i && styles.indicatorActive]} />
+                ))}
+                </View>
+
+            {/* ✅ 수정: 검색창 클릭 시 네비게이션으로 이동 */}
             <View style={styles.chatContainer}>
-                <TouchableOpacity style={styles.searchBar} onPress={openChat} activeOpacity={0.9}>
+                <TouchableOpacity 
+                    style={styles.searchBar} 
+                    onPress={() => navigation.navigate('AIChat')}
+                    activeOpacity={0.9}
+                >
                     <Text style={styles.searchPlaceholder}>어떻게 버려야 할지 모르겠다면 AI에게 물어보세요</Text>
                     <View style={styles.searchIconWrap}>
                         <Text style={styles.searchIcon}>🔍</Text>
@@ -282,7 +273,7 @@ export default function DischargeGuideScreen() {
                 ))}
             </View>
 
-            {/* 하단 안내 배너 */}
+            {/* 하단 안내 배너 - 글자 크기 1 감소 */}
             <View style={styles.noticeBar}>
                 <Text style={styles.noticeText}>ⓘ 폐의약품·폐건전지는 전용 배출함에 버려야 합니다.</Text>
                 <TouchableOpacity>
@@ -290,26 +281,7 @@ export default function DischargeGuideScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* AI Chat Bottom Sheet (동작 동일) */}
-            <Animated.View style={[styles.chatSheet, { transform: [{ translateY: sheetY }] }]}>
-                <View style={styles.chatSheetHeader}>
-                    <Text style={styles.chatSheetTitle}>AI 분리배출 도우미</Text>
-                    <TouchableOpacity onPress={closeChat}>
-                        <Text style={{ color: '#fff' }}>닫기</Text>
-                    </TouchableOpacity>
-                </View>
-                <ScrollView contentContainerStyle={{ padding: 14 }}>
-                    <Text style={styles.botResponse}>여기에 AI 답변이 표시됩니다.</Text>
-                </ScrollView>
-                <View style={styles.chatInputRow}>
-                    <TextInput value={message} onChangeText={setMessage} placeholder="메시지를 입력하세요" style={styles.inputMessage} />
-                    <TouchableOpacity style={styles.sendChatBtn}>
-                        <Text style={{ color: '#fff' }}>전송</Text>
-                    </TouchableOpacity>
-                </View>
-            </Animated.View>
-
-            {/* 상세 모달 (데이터·디자인 기존 유지) */}
+            {/* 상세 모달 */}
             {selected && (
                 <View style={styles.infoOverlay}>
                     <View style={styles.infoCard}>
@@ -320,7 +292,6 @@ export default function DischargeGuideScreen() {
                             </TouchableOpacity>
                         </View>
 
-                        {/* 탭 (종이/종이팩만) */}
                         {wasteInfo[selected].tabs && (
                             <View style={styles.tabRow}>
                                 {wasteInfo[selected].tabs.map((t) => (
@@ -370,52 +341,89 @@ export default function DischargeGuideScreen() {
     );
 }
 
-// 스타일 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#ffffff' },
 
     // 카드 영역
-    guideScroll: { marginTop: 8 },
+    guideScroll: { marginTop: 16 },
     card: {
-        width: width - 50,
+        position: 'relative',
+        width: width - 55,
         marginHorizontal: 20,
-        borderRadius: 16,
+        borderRadius: 20,
         paddingVertical: 18,
-        paddingHorizontal: 18,
+        paddingHorizontal: 10,
         alignItems: 'center',
-        marginVertical: 10,
+        marginVertical: 12,
+        minHeight: 480,
     },
-    cardTitle: { fontSize: 20, fontWeight: '700', color: '#078C5A' },
-    cardSubtitle: { color: '#5B5B5B', marginTop: 6, marginBottom: 10, fontSize: 13 },
-    stepImage: { width: width - 120, height: 170, resizeMode: 'contain', marginTop: -40, marginBottom:-30 },
+    cardTitle: { fontSize: 22, fontWeight: '700', color: '#078C5A', letterSpacing: -0.5 },
+    cardSubtitle: { color: '#5B5B5B', marginTop: 6, marginBottom: 14, fontSize: 14, letterSpacing: -0.3 },
+    stepImage: { 
+        width: width - 100,
+        height: 180,
+        resizeMode: 'contain', 
+        marginTop: -40,
+        marginBottom: -20,
+    },
 
-    cardTitleRed: { fontSize: 20, fontWeight: '700', color: '#E53E3E' },
-    cardSubtitleRed: { color: '#E53E3E', marginBottom: 12, fontSize: 13 },
-    badItemBox: { backgroundColor: '#fff', padding: 14, borderRadius: 12, width: '100%', borderWidth: 1, borderColor: '#F3C1C1' },
-    badItemText: { color: '#333', fontSize: 13, lineHeight: 20 },
+    cardTitleRed: { fontSize: 22, fontWeight: '700', color: '#E53E3E', letterSpacing: -0.5 },
+    cardSubtitleRed: { color: '#E53E3E', marginTop: 8, marginBottom: 14, fontSize: 14, letterSpacing: -0.3 },
+    
+    redCardContentArea: {
+        width: '100%',
+        height: 260,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badItemBox: { 
+        backgroundColor: '#fff', 
+        padding: 18,
+        borderRadius: 16,
+        width: '100%', 
+        borderWidth: 1, 
+        marginTop:-60,
+        borderColor: '#F3C1C1',
+    },
+    badItemText: { color: '#333', fontSize: 14, lineHeight: 24, marginBottom: 6, letterSpacing: -0.25 },
 
-    innerIndicatorContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 12 },
-    indicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#d1d5db', marginHorizontal: 4 },
-    indicatorActive: { backgroundColor: '#078C5A' },
+    indicatorWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: -10,
+        marginBottom: 6,
+    },
+    indicator: { 
+        width: 8, 
+        height: 8, 
+        borderRadius: 4, 
+        backgroundColor: '#d1d5db', 
+        marginHorizontal: 4,
+        zIndex: 101,
+    },
+    indicatorActive: { 
+        backgroundColor: '#078C5A',
+        zIndex: 102,
+    },
 
     // 검색창
-    chatContainer: { marginHorizontal: 20, marginTop: 12 },
+    chatContainer: { marginHorizontal: 20, marginTop: 20, marginBottom: 4 },
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
         borderRadius: 28,
-        paddingVertical: 12,
-        paddingLeft: 16,
-        paddingRight: 12,
+        paddingVertical: 14,
+        paddingLeft: 18,
+        paddingRight: 14,
         borderWidth: 1,
         borderColor: '#E5E7EB',
     },
-    searchPlaceholder: { color: '#9CA3AF', fontSize: 14, flex: 1 },
+    searchPlaceholder: { color: '#9CA3AF', fontSize: 14, flex: 1, letterSpacing: -0.2 },
     searchIconWrap: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 38,
+        height: 38,
+        borderRadius: 19,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
@@ -428,74 +436,86 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        marginTop: 14,
+        marginTop: 20,
         paddingHorizontal: 22,
+        marginBottom: 8,
     },
-    iconItem: { alignItems: 'center', width: '20%', marginVertical: 12 },
-    iconImage: { width: 42, height: 42, resizeMode: 'contain' },
-    iconLabel: { fontSize: 12, marginTop: 6, color: '#333' },
+    iconItem: { alignItems: 'center', width: '20%', marginVertical: 14 },
+    iconImage: { width: 44, height: 44, resizeMode: 'contain' },
+    iconLabel: { fontSize: 12, marginTop: 6, color: '#333', textAlign: 'center', letterSpacing: -0.2 },
 
     // 하단 안내 배너
     noticeBar: {
-        marginTop: 6,
+        marginTop: 12,
+        marginBottom: 16,
         marginHorizontal: 20,
         borderRadius: 12,
         backgroundColor: '#F9FAFB',
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        paddingVertical: 12,
-        paddingHorizontal: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    noticeText: { fontSize: 12, color: '#111' },
-    noticeLink: { fontSize: 12, color: '#9CA3AF', textDecorationLine: 'underline' },
+    noticeText: { fontSize: 11, color: '#111', flex: 1, letterSpacing: -0.2 },
+    noticeLink: { fontSize: 11, color: '#9CA3AF', textDecorationLine: 'underline' },
 
-    // 바텀시트
-    chatSheet: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 450,
-        backgroundColor: '#078C5A',
-        borderTopLeftRadius: 50,
-        borderTopRightRadius: 50,
-        paddingTop: 14,
-    },
-    chatSheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, marginBottom: 8 },
-    chatSheetTitle: { color: '#fff', fontSize: 18, fontWeight: '600' },
-    botResponse: { color: '#ffffffcc', fontSize: 14, lineHeight: 20 },
-    chatInputRow: { flexDirection: 'row', alignItems: 'center', marginTop: 'auto', padding: 12 },
-    inputMessage: { flex: 1, backgroundColor: '#fff', borderRadius: 22, paddingHorizontal: 14, height: 42, fontSize: 14 },
-    sendChatBtn: { backgroundColor: '#055F3C', paddingHorizontal: 16, height: 42, borderRadius: 22, justifyContent: 'center', marginLeft: 8 },
-
-    // 상세 모달 
+    // 상세 모달
     infoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' },
     infoCard: { width: width - 40, backgroundColor: '#fff', borderRadius: 26, padding: 22, maxHeight: '80%' },
     infoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    infoTitle: { fontSize: 18, fontWeight: '700', color: '#0b0b0bff',mraginBottom:-10,alignItems:'center'},
+    infoTitle: { fontSize: 18, fontWeight: '700', color: '#0b0b0b', letterSpacing: -0.3 },
 
     tabRow: { flexDirection: 'row', marginTop: 12 },
     tabChipActive: { backgroundColor: '#078C5A', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginRight: 8 },
     tabChipInactive: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#078C5A', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginRight: 8 },
 
     sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 6 },
-    subtitleText: { fontSize: 13, color: '#666', marginBottom: 14 },
+    subtitleText: { fontSize: 13, color: '#666', marginBottom: 14, letterSpacing: -0.2 },
 
     numberGroup: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 12, position: 'relative' },
     numberCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#078C5A', justifyContent: 'center', alignItems: 'center', marginRight: 10, zIndex: 2 },
-    numberText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+    numberText: { color: '#fff', fontWeight: '700', fontSize: 13, letterSpacing: -0.3 },
     verticalLine: { position: 'absolute', left: 13, top: 26, width: 2, height: 28, backgroundColor: '#078C5A', zIndex: 1 },
-    numberLine: { flex: 1, color: '#111', fontSize: 14, lineHeight: 20 },
+    numberLine: { flex: 1, color: '#111', fontSize: 14, lineHeight: 20, letterSpacing: -0.15 },
 
-    tipText: { fontSize: 13, color: '#111', marginTop: 20, lineHeight: 19 },
+    tipText: { fontSize: 13, color: '#111', marginTop: 20, lineHeight: 19, letterSpacing: -0.15 },
     processTitle: { fontSize: 13, marginTop: 22, marginBottom: 6, color: '#666' },
     processText: { fontSize: 12, color: '#999', lineHeight: 18 },
 
-    stepRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', paddingHorizontal: 6, marginTop: 6 },
-    stepCol: { width: (width - 40 - 24) / 4, alignItems: 'center' },
-    stepTitle: { fontSize: 13, fontWeight: '700', color: '#078C5A', marginBottom: 4 },
-    stepDesc: { fontSize: 11, color: '#6B7280', textAlign: 'center', lineHeight: 15 },
+    // Step Row
+    stepRow: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        width: '100%', 
+        paddingHorizontal: 4,
+        marginTop: 18,
+        marginBottom: 10,
+    },
+    stepCol: { 
+        width: (width - 70) / 4,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        paddingHorizontal: 3,
+    },
+    stepTitle: { 
+        fontSize: 15,
+        fontWeight: '700', 
+        color: '#078C5A', 
+        marginBottom: 8,
+        marginTop: -30,
+        textAlign: 'center',
+        width: '100%',
+        letterSpacing: 0.1,
+    },
+    stepDesc: { 
+        fontSize: 10.5,
+        color: '#6B7280', 
+        textAlign: 'center', 
+        lineHeight: 16,
+        width: '100%',
+        letterSpacing: -0.3,
+    },
 });
