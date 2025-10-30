@@ -10,7 +10,7 @@ import {
     SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapBottomSheet from '../map/MapBottomSheet'; // 👈 올바른 경로
+import MapBottomSheet from '../map/MapBottomSheet';
 
 export default function MapScreen({ navigation }) {
     const [selectedFilter, setSelectedFilter] = useState('전체');
@@ -24,12 +24,14 @@ export default function MapScreen({ navigation }) {
         <SafeAreaView style={styles.safeContainer}>
             <View style={styles.container}>
                 
+                {/* 1. 지도 영역 (배경) */}
                 <View style={styles.mapArea}>
                     <Text style={styles.mapPlaceholderText}>
                         🗺️ 지도 API 연결 예정 🗺️
                     </Text>
                 </View>
 
+                {/* 2. 상단 헤더/검색창 */}
                 <View style={styles.header}> 
                     <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
                         <Ionicons name="arrow-back" size={24} color="#111827" />
@@ -51,6 +53,7 @@ export default function MapScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
+                {/* 3. 필터 버튼 */}
                 <View style={styles.filterRow}>
                     {['전체', '배출함', '폐의약품', '폐건전지'].map((item) => (
                         <TouchableOpacity
@@ -73,6 +76,7 @@ export default function MapScreen({ navigation }) {
                     ))}
                 </View>
 
+                {/* 4. 하단 목록 */}
                 <MapBottomSheet selectedFilter={selectedFilter} />
                 
             </View>
@@ -83,6 +87,8 @@ export default function MapScreen({ navigation }) {
 const styles = StyleSheet.create({
     safeContainer: { flex: 1, backgroundColor: '#fff' },
     container: { flex: 1, backgroundColor: '#fff' },
+
+    // 지도 영역
     mapArea: {
         flex: 1, 
         backgroundColor: '#F3F4F6',
@@ -90,6 +96,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     mapPlaceholderText: { color: '#9CA3AF', fontSize: 13 },
+    
+    // 상단 헤더
     header: {
         position: 'absolute',
         top: 0,
@@ -106,6 +114,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     backButton: { marginRight: 8, padding: 5 },
+    
     searchBox: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -118,6 +127,8 @@ const styles = StyleSheet.create({
     searchIcon: { marginRight: 6 },
     input: { flex: 1, fontSize: 15, color: '#111827', paddingVertical: 0 },
     locateButton: { marginLeft: 10, padding: 5 },
+
+    // 필터 버튼
     filterRow: {
         position: 'absolute',
         top: 65,
