@@ -1,125 +1,126 @@
+// src/screens/MapScreen.js (최종 버전)
+
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  Image
+    View,
+    Text,
+    TextInput,
+    StyleSheet,
+    TouchableOpacity,
+    SafeAreaView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
+import MapBottomSheet from '../map/MapBottomSheet';
 
-const { width } = Dimensions.get('window');
+export default function MapScreen({ navigation }) {
+    const [searchText, setSearchText] = useState('');
+    
+    const handleGoBack = () => {
+        navigation.navigate('Home'); 
+    };
 
-export default function MapScreen() {
-  const [selectedFilter, setSelectedFilter] = useState('전체');
-  const [searchText, setSearchText] = useState('');
+    return (
+        <SafeAreaView style={styles.safeContainer}>
+            <View style={styles.container}>
+                
+                {/* 1. 지도 영역 (배경) */}
+                <View style={styles.mapArea}>
+                    <Text style={styles.mapPlaceholderText}>
+                        🗺️ 지도 API 연결 예정 🗺️
+                    </Text>
+                </View>
 
-  return (
+                {/* 2. 상단 헤더 */}
+                <View style={styles.header}> 
+                    <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+                        <Ionicons name="arrow-back" size={24} color="#111827" />
+                    </TouchableOpacity>
+                    
+                    <View style={styles.searchBox}>
+                        <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+                        <TextInput 
+                            placeholder="지역, 주소를 검색해보세요" 
+                            placeholderTextColor="#9CA3AF" 
+                            style={styles.input} 
+                            value={searchText} 
+                            onChangeText={setSearchText}
+                        />
+                    </View>
+                    
+                    <TouchableOpacity style={styles.locateButton}>
+                        <Ionicons name="locate" size={24} color="#111827" />
+                    </TouchableOpacity>
+                </View>
 
-      <View style={styles.container}> 
-      {/* 상단 검색창 */} 
-      <View style={styles.searchContainer}> 
-        <View style={styles.searchBox}>
-          <TextInput placeholder="지역, 주소를 검색해보세요" 
-          placeholderTextColor="#9ca3af" 
-          style={styles.input} 
-          value={searchText} 
-          
-          onChangeText={setSearchText}
-          /> </View> </View>
-
-        {/* 필터 버튼 */}
-        <View style={styles.filterRow}>
-          {['전체', '배출함', '폐의약품', '폐건전지'].map((item) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.filterBtn,
-                selectedFilter === item && styles.filterBtnActive,
-              ]}
-              onPress={() => setSelectedFilter(item)}
-            >
-              <Text
-                style={[
-                  styles.filterText,
-                  selectedFilter === item && styles.filterTextActive,
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* 지도 자리 (흰 박스) */}
-        <View style={styles.mapPlaceholder}>
-          <Text style={{ color: '#9ca3af', fontSize: 13 }}>지도 API 연결 예정</Text>
-        </View>
-      </View>
-      );
+                {/* 3. 하단 BottomSheet */}
+                <MapBottomSheet />
+                
+            </View>
+        </SafeAreaView>
+    );
 }
 
-      const styles = StyleSheet.create({
-        container: {flex:1, backgroundColor: '#fff' },
+const styles = StyleSheet.create({
+    safeContainer: { 
+        flex: 1, 
+        backgroundColor: '#fff' 
+    },
+    container: { 
+        flex: 1, 
+        backgroundColor: '#fff' 
+    },
 
-      searchContainer: {
+    // 지도 영역
+    mapArea: {
+        flex: 1, 
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    mapPlaceholderText: { 
+        color: '#9CA3AF', 
+        fontSize: 13 
+    },
+    
+    // 상단 헤더
+    header: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
         flexDirection: 'row',
-      alignItems: 'center',
-      paddingTop: 10,
-      paddingHorizontal: 16,
-      backgroundColor: '#fff',
-  },
-
-      searchBox: {
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+        zIndex: 10,
+    },
+    backButton: { 
+        marginRight: 8, 
+        padding: 5 
+    },
+    
+    searchBox: {
         flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#f3f4f6',
-      borderRadius: 15,
-      paddingHorizontal: 10,
-      flex: 1,
-      height: 50,
-      justifyContent: 'space-between',
-  },
-      input: {marginLeft: 6, flex: 1, fontSize: 16, color: '#111827' },
-
-      searchIconBtn: {
-        padding: 4,
-  },
-
-      searchIcon: {
-        width: 16,
-      height: 16,
-      tintColor: '#9ca3af', // 검색 아이콘 색감 회색 톤 유지
-  },
-
-      filterRow: {
-        flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginTop: 12,
-      marginHorizontal: 50,
-  },
-      filterBtn: {
-        borderRadius: 20,
-      borderWidth: 1,
-      borderColor: '#d1d5db',
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-  },
-      filterBtnActive: {
-        borderColor: '#000',
-      backgroundColor: '#111827',
-  },
-      filterText: {color: '#6b7280', fontSize: 13 },
-      filterTextActive: {color: '#fff', fontWeight: '600' },
-
-      mapPlaceholder: {
+        alignItems: 'center',
+        backgroundColor: '#F9FAFB',
+        borderRadius: 25,
+        paddingHorizontal: 12,
         flex: 1,
-      marginTop: 4,
-      backgroundColor: '#f5f5f5',
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: width,
-  },
+        height: 40,
+    },
+    searchIcon: { marginRight: 6 },
+    input: { 
+        flex: 1, 
+        fontSize: 15, 
+        color: '#111827', 
+        paddingVertical: 0 
+    },
+    locateButton: { 
+        marginLeft: 10, 
+        padding: 5 
+    },
 });
