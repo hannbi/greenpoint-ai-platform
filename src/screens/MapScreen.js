@@ -56,6 +56,7 @@ export default function MapScreen() {
       {/* 지도 자리 */}
       <View style={styles.mapPlaceholder}>
         <KakaoMap
+          selectedFilter={selectedFilter}
           onMapClick={(data) => {
             console.log('지도에서 클릭한 좌표:', data.lat, data.lng);
           }}
