@@ -8,36 +8,57 @@ import {
     StyleSheet,
     TouchableOpacity,
     SafeAreaView,
-  Dimensions,
+    Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapBottomSheet from '../map/MapBottomSheet'; // 👈 올바른 경로
+import MapBottomSheet from '../map/MapBottomSheet';
 
 const { width, height } = Dimensions.get('window');
-export default function MapScreen({ navigation }) {
+
+export default function MapScreen({ route, navigation }) {
     const [selectedFilter, setSelectedFilter] = useState('전체');
     const [searchText, setSearchText] = useState('');
+    const [bins, setBins] = useState([]); // 배출함 데이터 상태 추가
+
+    // 화면이 포커스될 때마다 실행
+    useFocusEffect(
+        React.useCallback(() => {
+            if (route?.params?.filter) {
+                // params에 filter가 있으면 해당 필터 적용
+                setSelectedFilter(route.params.filter);
+                // params 초기화 (다음에 하단바로 들어올 때 '전체'로 리셋되도록)
+                navigation.setParams({ filter: undefined });
+            } else {
+                // params가 없으면 '전체'로 초기화
+                setSelectedFilter('전체');
+            }
+        }, [route?.params?.filter, navigation])
+    );
     
     const handleGoBack = () => {
         navigation.navigate('Home'); 
     };
 
-<<<<<<<
-export default function MapScreen({ route, navigation }) {
-  const [selectedFilter, setSelectedFilter] = useState('전체');
-  const [searchText, setSearchText] = useState('');
-=======
+    // KakaoMap에서 배출함 데이터를 받아서 상태에 저장
+    const handleBinsUpdate = (newBins) => {
+        setBins(newBins);
+    };
+
     return (
         <SafeAreaView style={styles.safeContainer}>
             <View style={styles.container}>
-                
-                <View style={styles.mapArea}>
-                    <Text style={styles.mapPlaceholderText}>
-                        🗺️ 지도 API 연결 예정 🗺️
-                    </Text>
+                {/* 지도 영역 */}
+                <View style={styles.mapContainer}>
+                    <KakaoMap
+                        selectedFilter={selectedFilter}
+                        onBinsUpdate={handleBinsUpdate}
+                        onMapClick={(data) => {
+                            console.log('지도에서 클릭한 좌표:', data.lat, data.lng);
+                        }}
+                    />
                 </View>
->>>>>>>
 
+                {/* 헤더 (지도 위에 오버레이) */}
                 <View style={styles.header}> 
                     <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
                         <Ionicons name="arrow-back" size={24} color="#111827" />
@@ -59,6 +80,7 @@ export default function MapScreen({ route, navigation }) {
                     </TouchableOpacity>
                 </View>
 
+                {/* 필터 버튼 (지도 위에 오버레이) */}
                 <View style={styles.filterRow}>
                     {['전체', '배출함', '폐의약품', '폐건전지'].map((item) => (
                         <TouchableOpacity
@@ -81,24 +103,28 @@ export default function MapScreen({ route, navigation }) {
                     ))}
                 </View>
 
-                <MapBottomSheet selectedFilter={selectedFilter} />
-                
+                {/* 바텀시트 */}
+                <MapBottomSheet 
+                    selectedFilter={selectedFilter} 
+                    bins={bins}
+                />
             </View>
         </SafeAreaView>
     );
-      <View style={styles.mapPlaceholder}>
-      </View>
-        />
-          }}
-            console.log('지도에서 클릭한 좌표:', data.lat, data.lng);
-          onMapClick={(data) => {
-        <KakaoMap
-          selectedFilter={selectedFilter}
 }
 
 const styles = StyleSheet.create({
     safeContainer: { flex: 1, backgroundColor: '#fff' },
     container: { flex: 1, backgroundColor: '#fff' },
+    mapContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+    },
     mapArea: {
         flex: 1, 
         backgroundColor: '#F3F4F6',

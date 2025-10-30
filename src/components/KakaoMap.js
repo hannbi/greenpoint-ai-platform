@@ -6,7 +6,7 @@ import { binApi } from '../services/api/binApi';
 
 const KAKAO_JS_KEY = '9944a2757aa5f92e931fc980566f4365';
 
-export default function KakaoMap({ onMapClick, selectedFilter = '전체' }) {
+export default function KakaoMap({ onMapClick, selectedFilter = '전체', onBinsUpdate }) {
   const webViewRef = useRef(null);
 
   // Web에서는 iframe 사용
@@ -204,6 +204,11 @@ export default function KakaoMap({ onMapClick, selectedFilter = '전체' }) {
               const { minX, minY, maxX, maxY } = data.bounds;
               try {
                 const bins = await binApi.getBins(minX, minY, maxX, maxY);
+                
+                // 부모 컴포넌트에 전체 데이터 전달
+                if (onBinsUpdate) {
+                  onBinsUpdate(bins);
+                }
                 
                 // 필터링 적용
                 let filteredBins = bins;

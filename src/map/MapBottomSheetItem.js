@@ -5,7 +5,27 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MapBottomSheetItem({ location }) {
-    const { name, address, distance, type, status, image, tags } = location;
+    // API 데이터 형식에 맞게 매핑
+    const name = location.name || '이름 없음';
+    const address = location.address || location.location || '주소 없음';
+    const distance = location.distance || '거리 정보 없음';
+    
+    // type 변환: '기본' → '배출함', '폐배터리' → '폐건전지'
+    let type = location.type;
+    if (type === '기본') type = '배출함';
+    if (type === '폐배터리') type = '폐건전지';
+    
+    // status 변환: 'normal' → '운영중', 'full' → '가득참', 'maintenance' → '정비중'
+    let status = location.status;
+    if (status === 'normal') status = '운영중';
+    if (status === 'full') status = '가득참';
+    if (status === 'maintenance') status = '정비중';
+    
+    // 이미지 URL이 있으면 사용
+    const image = location.imageUrl ? { uri: location.imageUrl } : null;
+    
+    // 태그는 type 기반으로 생성
+    const tags = [type];
 
     // 타입별 배경색
     const getTypeColor = () => {
@@ -26,9 +46,9 @@ export default function MapBottomSheetItem({ location }) {
         switch (status) {
             case '운영중':
                 return { bg: '#DFFEF0', text: '#078C5A' };
-            case '가동정지':
+            case '가득참':
                 return { bg: '#FEE2E2', text: '#DC2626' };
-            case '대기중':
+            case '정비중':
                 return { bg: '#FEF3C7', text: '#D97706' };
             default:
                 return { bg: '#F3F4F6', text: '#6B7280' };

@@ -17,96 +17,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BOTTOM_SHEET_MIN_HEIGHT = SCREEN_HEIGHT * 0.33;
 const BOTTOM_SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.7;
 
-// 실제 데이터
-const MOCK_LOCATIONS = [
-    // 전체 (1, 2, 3번)
-    {
-        id: '1',
-        name: '순천대학교 공대3호관',
-        address: '전라남도 순천시 중앙로 255',
-        distance: '2.0km',
-        type: '배출함',
-        status: '운영중',
-        image: require('../../assets/bin1.png'),
-        tags: ['배출함'],
-    },
-    {
-        id: '2',
-        name: '삼산동 행정복지센터',
-        address: '전라남도 순천시 삼산동 3',
-        distance: '3.5km',
-        type: '배출함',
-        status: '운영중',
-        image: require('../../assets/bin2.png'),
-        tags: ['배출함', '폐의약품', '폐건전지'],
-    },
-    {
-        id: '3',
-        name: '순천 경찰서',
-        address: '전라남도 순천시 조례동 2',
-        distance: '4.2km',
-        type: '배출함',
-        status: '가동정지',
-        image: require('../../assets/bin3.png'),
-        tags: ['배출함', '폐건전지'],
-    },
-    
-    // 폐의약품 (4, 5, 6번)
-    {
-        id: '4',
-        name: '삼산동 행정복지센터',
-        address: '전라남도 순천시 삼산동 3',
-        distance: '2.0km',
-        type: '폐의약품',
-        status: '운영중',
-        image: require('../../assets/bin4.png'),
-        tags: ['폐의약품'],
-    },
-    {
-        id: '5',
-        name: '순천시 보건소',
-        address: '전라남도 순천시 석현동 35-6',
-        distance: '3.2km',
-        type: '폐의약품',
-        status: '운영중',
-        image: require('../../assets/bin5.png'),
-        tags: ['폐의약품'],
-    },
-    {
-        id: '6',
-        name: '매곡동 행정복지센터',
-        address: '전라남도 순천시 덕암2길 63',
-        distance: '4.8km',
-        type: '폐의약품',
-        status: '운영중',
-        image: require('../../assets/bin6.png'),
-        tags: ['폐의약품'],
-    },
-    
-    // 폐건전지 (7, 8번)
-    {
-        id: '7',
-        name: '삼산동 행정복지센터',
-        address: '전라남도 순천시 삼산동 3',
-        distance: '2.5km',
-        type: '폐건전지',
-        status: '운영중',
-        image: require('../../assets/bin7.png'),
-        tags: ['폐건전지'],
-    },
-    {
-        id: '8',
-        name: '매곡동 행정복지센터',
-        address: '전라남도 순천시 덕암2길 63',
-        distance: '5.1km',
-        type: '폐건전지',
-        status: '운영중',
-        image: require('../../assets/bin8.png'),
-        tags: ['폐건전지'],
-    },
-];
-
-export default function MapBottomSheet({ selectedFilter }) {
+export default function MapBottomSheet({ selectedFilter, bins = [] }) {
     const [sortOption, setSortOption] = useState('내 주변');
     const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -157,10 +68,24 @@ export default function MapBottomSheet({ selectedFilter }) {
     });
 
     // 필터링 로직
-    const filteredLocations =
-        selectedFilter === '전체'
-            ? MOCK_LOCATIONS.filter(loc => ['1', '2', '3'].includes(loc.id))
-            : MOCK_LOCATIONS.filter((loc) => loc.type === selectedFilter);
+    const filteredLocations = bins.filter((bin) => {
+        if (selectedFilter === '전체') return true;
+        if (selectedFilter === '배출함') return bin.type === '기본';
+        if (selectedFilter === '폐의약품') return bin.type === '폐의약품';
+        if (selectedFilter === '폐건전지') return bin.type === '폐배터리';
+        return true;
+    });
+
+    // 정렬 옵션 적용
+    const sortedLocations = [...filteredLocations].sort((a, b) => {
+        if (sortOption === '운영중') {
+            // status가 'normal'인 것 우선
+            if (a.status === 'normal' && b.status !== 'normal') return -1;
+            if (a.status !== 'normal' && b.status === 'normal') return 1;
+        }
+        // 기본: 내 주변 (거리순) - 거리 계산 필요시 추가
+        return 0;
+    });
 
     return (
         <Animated.View style={[styles.container, { height: animatedHeight }]}>
@@ -194,8 +119,8 @@ export default function MapBottomSheet({ selectedFilter }) {
 
             {/* 장소 리스트 */}
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                {filteredLocations.length > 0 ? (
-                    filteredLocations.map((location) => (
+                {sortedLocations.length > 0 ? (
+                    sortedLocations.map((location) => (
                         <MapBottomSheetItem key={location.id} location={location} />
                     ))
                 ) : (
