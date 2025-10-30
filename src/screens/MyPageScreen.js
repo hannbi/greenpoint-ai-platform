@@ -1,15 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image, Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 export default function MyPageScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>마이페이지 화면 🙋‍♀️</Text>
+      <Image 
+        source={ 'https://s3.treebomb.org/it-da/mypage.png'} 
+        style={styles.fullImage}
+        resizeMode='cover'
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 18, fontWeight: '600' },
+  container: { 
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  fullImage: {
+    width: width,
+    height: height,
+  },
 });

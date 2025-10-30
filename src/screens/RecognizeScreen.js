@@ -2,39 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground, ActivityIndicator, Animated, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import RecognitionResultBottomSheet from './RecognitionResultBottomSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dischargeApi from '../services/api/dischargeApi';
+import apiClient from '../services/api/apiClient';
+import RecognitionResultBottomSheet from './RecognitionResultBottomSheet';
 
 export default function RecognizeScreen({ navigation }) {
 
     const [selectedImage, setSelectedImage] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [detections, setDetections] = useState([]);
     const [userId, setUserId] = useState(null);
+    const [userPoints, setUserPoints] = useState(0);
+    
+    // 결과 바텀시트 상태
+    const [showResultSheet, setShowResultSheet] = useState(false);
+    const [recognitionResults, setRecognitionResults] = useState([]);
 
     // 안내 바텀시트
     const [showGuide, setShowGuide] = useState(true);
     const [guideStep, setGuideStep] = useState(0);
 
-    // userId 로드
+    // userId 및 포인트 로드
     useEffect(() => {
-        const loadUserId = async () => {
-            try {
-                const id = await AsyncStorage.getItem('userId');
-                if (id) {
-                    setUserId(id);
-                }
-            } catch (error) {
-                console.error('userId 로드 실패:', error);
-            }
-        };
-        loadUserId();
+        loadUserData();
     }, []);
 
-    // 인식 결과 바텀시트
-    const [showResult, setShowResult] = useState(false);
-    const [recognitionData, setRecognitionData] = useState([]);
+    const loadUserData = async () => {
+        try {
+            const id = await AsyncStorage.getItem('userId');
+            if (id) {
+                setUserId(id);
+                // 사용자 정보 조회하여 포인트 가져오기
+                const response = await apiClient.get(`/user/${id}`);
+                if (response.data && response.data.point !== undefined) {
+                    setUserPoints(response.data.point);
+                }
+            }
+        } catch (error) {
+            console.error('사용자 데이터 로드 실패:', error);
+        }
+    };
 
     const guideImages = [
         require('../../assets/method1.png'),
@@ -61,7 +68,6 @@ export default function RecognizeScreen({ navigation }) {
             setSelectedImage(uri);
 
             setIsProcessing(true);
-            setDetections([]);
 
             try {
                 // FastAPI /detect 엔드포인트 호출
@@ -69,25 +75,31 @@ export default function RecognizeScreen({ navigation }) {
                 
                 console.log('감지 결과:', response);
 
-                // FastAPI 응답 형식에 맞춰 바운딩 박스 생성
-                if (response && response.items && response.items.length > 0) {
-                    const formattedDetections = response.items.map(item => ({
-                        left: `${item.bbox.x}%`,
-                        top: `${item.bbox.y}%`,
-                        width: `${item.bbox.width}%`,
-                        height: `${item.bbox.height}%`,
-                        grade: item.grade,
-                        material: item.material_type,
-                        color: getColorByGrade(item.grade)
+                // FastAPI 응답 처리
+                if (response && response.recyclables && response.recyclables.length > 0) {
+                    // RecognitionResultBottomSheet 형식으로 변환
+                    const formattedResults = response.recyclables.map(item => ({
+                        type: item.material_type,
+                        grade: item.quality_grade,
+                        clean: item.visual_analysis.cleanliness,
+                        removed_labeled: item.visual_analysis.label_status,
+                        color: item.visual_analysis.color,
+                        carbon: item.calculation.final_co2_reduction.toFixed(4),
+                        points: item.calculation.points,
+                        itemName: item.item_name,
+                        recommendations: item.recommendations
                     }));
-                    setDetections(formattedDetections);
+
+                    setRecognitionResults(formattedResults);
+                    setShowResultSheet(true);
+
+                    // 분석 완료 후 결과 이미지로 변경
+                    // ⚠️ require()는 정적 경로만 가능하므로 문자열로 직접 지정
+                    setSelectedImage({ uri: "https://s3.treebomb.org/it-da/image1.jpg" });  // 'result'는 결과 이미지를 나타내는 플래그
+                    
+                    
                 } else {
-                    // 응답이 없을 경우 목 데이터 사용 (개발용)
-                    setDetections([
-                        { left: '15%', top: '50%', width: '70%', height: '30%', grade: 'A', material: 'PLASTIC', color: '#1b04e3ff' },
-                        { left: '20%', top: '13%', width: '78%', height: '30%', grade: 'B', material: 'PAPER', color: '#c26400ff' },
-                        { left: '18%', top: '40%', width: '35%', height: '12%', grade: 'C', material: 'CAN', color: '#d40b0bff' },
-                    ]);
+                    Alert.alert('알림', '재활용품이 감지되지 않았습니다.');
                 }
 
             } catch (error) {
@@ -96,59 +108,8 @@ export default function RecognizeScreen({ navigation }) {
                 setSelectedImage(null);
             } finally {
                 setIsProcessing(false);
-                const mockDetections = [
-                    { left: '15%', top: '50%', width: '70%', height: '30%', grade: 'A', material: 'PLASTIC', color: '#1b04e3ff' },
-                    { left: '20%', top: '13%', width: '78%', height: '30%', grade: 'B', material: 'PAPER', color: '#c26400ff' },
-                    { left: '18%', top: '40%', width: '35%', height: '12%', grade: 'C', material: 'CAN', color: '#d40b0bff' },
-                ];
-                setDetections(mockDetections);
-
-                // ✅ AI 인식 완료 후 결과 데이터 생성
-                const results = [
-                    { 
-                        type: 'PET', 
-                        clean: 0.78, 
-                        removed_labeled: 0.34, 
-                        color: 0.9, 
-                        grade: 'C', 
-                        carbon: 198.3, 
-                        points: 1 
-                    },
-                    { 
-                        type: 'PAPER', 
-                        clean: 0.78, 
-                        color: 0.8, 
-                        grade: 'A', 
-                        carbon: 198.3, 
-                        points: 5 
-                    },
-                    { 
-                        type: 'CAN', // ✅ PET에서 CAN으로 변경
-                        clean: 0.68, 
-                        grade: 'A', 
-                        carbon: 198.3, 
-                        points: 5 
-                    }
-                ];
-                
-                // ✅ 2초 후 결과 바텀시트 표시
-                setTimeout(() => {
-                    setRecognitionData(results);
-                    setShowResult(true);
-                }, 2000);
-            }, 1200);
+            }
         }
-    };
-
-    // Grade에 따른 색상 매핑
-    const getColorByGrade = (grade) => {
-        const colorMap = {
-            'A': '#1b04e3ff', // 파란색
-            'B': '#c26400ff', // 주황색
-            'C': '#d40b0bff', // 빨간색
-            'D': '#666666ff', // 회색
-        };
-        return colorMap[grade] || '#078C5A'; // 기본값: 초록색
     };
 
     const showMaskAndFrame = !selectedImage;
@@ -199,7 +160,7 @@ export default function RecognizeScreen({ navigation }) {
 
                 <View style={styles.pointBox}>
                     <Image source={require('../../assets/coin.png')} style={styles.coinIcon} />
-                    <Text style={styles.pointText}>32,600 P</Text>
+                    <Text style={styles.pointText}>{userPoints.toLocaleString()} P</Text>
                 </View>
             </View>
 
@@ -216,18 +177,6 @@ export default function RecognizeScreen({ navigation }) {
                     <Text style={styles.processingText}>AI 인식 중입니다…</Text>
                 </View>
             )}
-
-            {/* 바운딩 박스 */}
-            {selectedImage && !isProcessing && detections.map((d, i) => (
-                <View key={i} style={[styles.box, { left: d.left, top: d.top, width: d.width, height: d.height, borderColor: d.color }]}>
-                    <View style={[styles.badgeRight, { borderColor: d.color }]}>
-                        <Text style={[styles.badgeText, { color: d.color }]}>Grade {d.grade}</Text>
-                    </View>
-                    <View style={[styles.badgeLeft, { borderColor: d.color }]}>
-                        <Text style={[styles.badgeText, { color: d.color }]}>{d.material}</Text>
-                    </View>
-                </View>
-            ))}
 
             {/* 하단 컨트롤 */}
             <View style={styles.bottomControls}>
@@ -281,15 +230,16 @@ export default function RecognizeScreen({ navigation }) {
                 </View>
             )}
 
-            {/* ✅ 인식 결과 바텀시트 */}
+
+            {/* 인식 결과 바텀시트 */}
             <RecognitionResultBottomSheet
-                visible={showResult}
+                visible={showResultSheet}
                 onClose={() => {
-                    setShowResult(false);
-                    // 홈 화면으로 이동
-                    navigation.navigate('Main');
+                    setShowResultSheet(false);
+                    // 바텀시트가 닫힐 때 포인트 갱신
+                    loadUserData();
                 }}
-                recognitionData={recognitionData}
+                recognitionData={recognitionResults}
             />
 
         </View>
@@ -325,11 +275,6 @@ const styles = StyleSheet.create({
         alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.35)', zIndex: 40
     },
     processingText: { marginTop: 10, color: '#fff', fontSize: 16 },
-
-    box: { position: 'absolute', borderWidth: 2, borderRadius: 8, zIndex: 25 },
-    badgeLeft: { position: 'absolute', top: -28, left: 0, padding: 4, borderRadius: 6, borderWidth: 2 },
-    badgeRight: { position: 'absolute', top: -28, right: 0, padding: 4, borderRadius: 6, borderWidth: 2 },
-    badgeText: { fontSize: 12, fontWeight: '700' },
 
     bottomControls: {
         position: 'absolute', bottom: 35, width: '100%',

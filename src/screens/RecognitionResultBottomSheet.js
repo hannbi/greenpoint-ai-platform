@@ -1,6 +1,6 @@
 // src/screens/RecognitionResultBottomSheet.js
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -11,8 +11,12 @@ import {
     Image,
     Animated,
     PanResponder,
+    Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiClient from '../services/api/apiClient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,6 +26,7 @@ export default function RecognitionResultBottomSheet({
     recognitionData = [] 
 }) {
     const translateY = useRef(new Animated.Value(height)).current;
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (visible) {
@@ -80,6 +85,43 @@ export default function RecognitionResultBottomSheet({
     // 총 포인트 계산
     const totalPoints = recognitionData.reduce((sum, item) => sum + (item.points || 0), 0);
 
+    // 포인트 적립 API 호출
+    const handleAddPoints = async () => {
+        try {
+            setIsSubmitting(true);
+
+            // AsyncStorage에서 userId 가져오기
+            const userId = await AsyncStorage.getItem('userId');
+            
+            if (!userId) {
+                Alert.alert('오류', '사용자 정보를 찾을 수 없습니다.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            // API 호출 - 응답이 비어있어도 status 200이면 성공
+            await apiClient.post('/user/add-point', {
+                id: userId,
+                point: totalPoints
+            });
+
+            console.log('포인트 적립 성공 - 200 OK');
+
+            // 바로 바텀시트 닫기
+            handleClose();
+
+        } catch (error) {
+            console.error('포인트 적립 실패:', error);
+            Alert.alert(
+                '오류',
+                '포인트 적립에 실패했습니다. 다시 시도해주세요.',
+                [{ text: '확인' }]
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     // 등급별 그라데이션 색상
     const getGradeGradient = (grade) => {
         switch(grade) {
@@ -100,13 +142,21 @@ export default function RecognitionResultBottomSheet({
     };
 
     const getTypeGradient = (type) => {
-        switch(type.toUpperCase()) {
-            case 'PET': return ['#7C4DFF', '#5E35B1'];
-            case 'PAPER': return ['#66BB6A', '#43A047'];
-            case 'PLASTIC': return ['#42A5F5', '#1E88E5'];
-            case 'CAN': return ['#EF5350', '#E53935'];
-            case 'GLASS': return ['#26C6DA', '#00ACC1'];
-            default: return ['#9E9E9E', '#757575'];
+        const upperType = type ? type.toUpperCase() : '';
+        switch(upperType) {
+            case 'PET':
+            case 'PLASTIC':
+            case 'PLASTIC_FILM':
+                return ['#42A5F5', '#1E88E5'];
+            case 'PAPER':
+                return ['#66BB6A', '#43A047'];
+            case 'CAN':
+            case 'METAL':
+                return ['#EF5350', '#E53935'];
+            case 'GLASS':
+                return ['#26C6DA', '#00ACC1'];
+            default:
+                return ['#9E9E9E', '#757575'];
         }
     };
 
@@ -162,17 +212,21 @@ export default function RecognitionResultBottomSheet({
                                 { borderColor: getGradeBorderColor(item.grade) }
                             ]}
                         >
+                            {/* 아이템 이름 */}
+                            {item.itemName && (
+                                <Text style={styles.itemNameText}>{item.itemName}</Text>
+                            )}
+
                             {/* 재질 타입 */}
                             <View style={styles.cardHeader}>
                                 <Text style={[styles.typeText, { color: getTypeGradient(item.type)[0] }]}>
-                                    {item.type.toUpperCase()}
+                                    {item.type}
                                 </Text>
-                                {/* ✅ 재활용 등급 섹션 - 완벽 중앙 정렬 */}
+                                {/* 재활용 등급 섹션 */}
                                 <View style={styles.gradeContainer}>
                                     <View style={styles.gradeRow}>
                                         <Text style={styles.gradeLabel}>재활용 등급</Text>
                                         <View style={[styles.gradeBadge, { borderColor: getGradeBorderColor(item.grade) }]}>
-                                            {/* ✅ C와 A/B 스타일 분리 */}
                                             <Text style={[
                                                 item.grade === 'C' ? styles.gradeTextC : styles.gradeTextA,
                                                 { color: getGradeBorderColor(item.grade) }
@@ -186,26 +240,36 @@ export default function RecognitionResultBottomSheet({
 
                             {/* 분석 정보 */}
                             <View style={styles.infoSection}>
-                                {item.clean !== undefined && (
-                                    <Text style={styles.infoText}>• clean (청결도): {item.clean}</Text>
+                                {item.clean && (
+                                    <Text style={styles.infoText}>• 청결도: {item.clean}</Text>
                                 )}
-                                {item.removed_labeled !== undefined && (
-                                    <Text style={styles.infoText}>• removed_labeled (제거된): {item.removed_labeled}</Text>
+                                {item.removed_labeled && (
+                                    <Text style={styles.infoText}>• 라벨 상태: {item.removed_labeled}</Text>
                                 )}
-                                {item.color !== undefined && (
-                                    <Text style={styles.infoText}>• color (색상): {item.color}</Text>
+                                {item.color && (
+                                    <Text style={styles.infoText}>• 색상: {item.color}</Text>
                                 )}
                             </View>
+
+                            {/* 권장사항 */}
+                            {item.recommendations && item.recommendations.length > 0 && (
+                                <View style={styles.recommendSection}>
+                                    <Text style={styles.recommendTitle}>💡 권장사항</Text>
+                                    {item.recommendations.map((rec, idx) => (
+                                        <Text key={idx} style={styles.recommendText}>• {rec}</Text>
+                                    ))}
+                                </View>
+                            )}
 
                             {/* 탄소 절감 & 포인트 */}
                             <View style={styles.cardFooter}>
                                 <View style={styles.carbonContainer}>
                                     <Text style={styles.carbonIcon}>♻️</Text>
-                                    <Text style={styles.carbonText}>탄소 절감량: {item.carbon || '198.3'} kg CO₂</Text>
+                                    <Text style={styles.carbonText}>탄소 절감: {item.carbon} kg CO₂</Text>
                                 </View>
                                 <View style={styles.pointContainer}>
                                     <Text style={styles.coinIcon}>🪙</Text>
-                                    <Text style={styles.pointText}>획득 포인트: {item.points || 0}P</Text>
+                                    <Text style={styles.pointText}>획득 포인트: {item.points}P</Text>
                                 </View>
                             </View>
                         </LinearGradient>
@@ -221,14 +285,18 @@ export default function RecognitionResultBottomSheet({
                 {/* 포인트 받기 버튼 */}
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity 
-                        style={styles.confirmButton}
-                        onPress={() => {
-                            // 포인트 적립 로직
-                            console.log('포인트 받기:', totalPoints);
-                            handleClose();
-                        }}
+                        style={[
+                            styles.confirmButton,
+                            isSubmitting && styles.confirmButtonDisabled
+                        ]}
+                        onPress={handleAddPoints}
+                        disabled={isSubmitting}
                     >
-                        <Text style={styles.confirmButtonText}>포인트 받기</Text>
+                        {isSubmitting ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                            <Text style={styles.confirmButtonText}>포인트 받기</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </Animated.View>
@@ -315,6 +383,13 @@ const styles = StyleSheet.create({
         padding: 22,
         marginBottom: 18,
     },
+    itemNameText: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -384,6 +459,26 @@ const styles = StyleSheet.create({
         lineHeight: 28,
         letterSpacing: -0.2,
         fontWeight: '500',
+    },
+    
+    // 권장사항 섹션
+    recommendSection: {
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 16,
+    },
+    recommendTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: 8,
+    },
+    recommendText: {
+        fontSize: 16,
+        color: '#555',
+        lineHeight: 24,
+        marginBottom: 4,
     },
     
     // 카드 푸터
@@ -461,6 +556,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 8,
         elevation: 4,
+    },
+    confirmButtonDisabled: {
+        backgroundColor: '#BDBDBD',
     },
     confirmButtonText: {
         color: '#fff',
