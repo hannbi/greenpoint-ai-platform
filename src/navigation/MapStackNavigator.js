@@ -1,6 +1,9 @@
+// navigation/MapStackNavigator.js (수정)
+
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { TouchableOpacity, Image } from 'react-native';
+// 💡 커스텀 헤더를 MapScreen에서 처리하므로, 아래 두 import는 더 이상 필요 없습니다.
+// import { TouchableOpacity, Image } from 'react-native'; 
 import MapScreen from '../screens/MapScreen';
 
 const Stack = createNativeStackNavigator();
@@ -11,27 +14,15 @@ export default function MapStackNavigator() {
       <Stack.Screen
         name="MapMain"
         component={MapScreen}
-        options={({ navigation }) => ({
-          title: '내 근처',
-          headerShown: true,
-          headerTitleAlign: 'center',
-          headerTintColor: '#111827',
-          headerStyle: { backgroundColor: '#ffffff' },
-          headerTitleStyle: { fontWeight: '700', fontSize: 20 },
-
-          // 뒤로가기 버튼
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={{ paddingHorizontal: 12, paddingVertical: 6 }}
-            >
-              <Image
-                source={require('../../assets/backstep.png')}
-                style={{ width: 20, height: 20, resizeMode: 'contain' }}
-              />
-            </TouchableOpacity>
-          ),
-        })}
+        options={
+          // 💡 가장 중요! OS 기본 헤더를 숨깁니다.
+          {
+            headerShown: false,
+          }
+          /* 모든 커스텀 헤더(title, headerTitleAlign, headerLeft 등) 옵션을 제거합니다.
+            이제 MapScreen 내부에서 검색 바와 뒤로가기 버튼을 관리합니다.
+          */
+        }
       />
     </Stack.Navigator>
   );
