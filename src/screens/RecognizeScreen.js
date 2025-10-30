@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground, ActivityIndicator, Animated, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import RecognitionResultBottomSheet from './RecognitionResultBottomSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dischargeApi from '../services/api/dischargeApi';
 
@@ -30,6 +31,10 @@ export default function RecognizeScreen({ navigation }) {
         };
         loadUserId();
     }, []);
+
+    // 인식 결과 바텀시트
+    const [showResult, setShowResult] = useState(false);
+    const [recognitionData, setRecognitionData] = useState([]);
 
     const guideImages = [
         require('../../assets/method1.png'),
@@ -91,7 +96,47 @@ export default function RecognizeScreen({ navigation }) {
                 setSelectedImage(null);
             } finally {
                 setIsProcessing(false);
-            }
+                const mockDetections = [
+                    { left: '15%', top: '50%', width: '70%', height: '30%', grade: 'A', material: 'PLASTIC', color: '#1b04e3ff' },
+                    { left: '20%', top: '13%', width: '78%', height: '30%', grade: 'B', material: 'PAPER', color: '#c26400ff' },
+                    { left: '18%', top: '40%', width: '35%', height: '12%', grade: 'C', material: 'CAN', color: '#d40b0bff' },
+                ];
+                setDetections(mockDetections);
+
+                // ✅ AI 인식 완료 후 결과 데이터 생성
+                const results = [
+                    { 
+                        type: 'PET', 
+                        clean: 0.78, 
+                        removed_labeled: 0.34, 
+                        color: 0.9, 
+                        grade: 'C', 
+                        carbon: 198.3, 
+                        points: 1 
+                    },
+                    { 
+                        type: 'PAPER', 
+                        clean: 0.78, 
+                        color: 0.8, 
+                        grade: 'A', 
+                        carbon: 198.3, 
+                        points: 5 
+                    },
+                    { 
+                        type: 'CAN', // ✅ PET에서 CAN으로 변경
+                        clean: 0.68, 
+                        grade: 'A', 
+                        carbon: 198.3, 
+                        points: 5 
+                    }
+                ];
+                
+                // ✅ 2초 후 결과 바텀시트 표시
+                setTimeout(() => {
+                    setRecognitionData(results);
+                    setShowResult(true);
+                }, 2000);
+            }, 1200);
         }
     };
 
@@ -236,6 +281,16 @@ export default function RecognizeScreen({ navigation }) {
                 </View>
             )}
 
+            {/* ✅ 인식 결과 바텀시트 */}
+            <RecognitionResultBottomSheet
+                visible={showResult}
+                onClose={() => {
+                    setShowResult(false);
+                    // 홈 화면으로 이동
+                    navigation.navigate('Main');
+                }}
+                recognitionData={recognitionData}
+            />
 
         </View>
     );
