@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://10.132.60.124:8000',
-  timeout: 10000,
+  baseURL: 'http://localhost:8000',
+  timeout: 100000,
   headers: {
     'Content-Type': 'application/json',
   },

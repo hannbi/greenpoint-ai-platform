@@ -55,35 +55,29 @@ export default function RecognizeScreen({ navigation }) {
             const uri = result.assets[0].uri;
             setSelectedImage(uri);
 
-            // userId 확인
-            if (!userId) {
-                Alert.alert('오류', '사용자 정보를 불러올 수 없습니다.');
-                return;
-            }
-
             setIsProcessing(true);
             setDetections([]);
 
             try {
-                // 백엔드로 이미지 전송
-                const response = await dischargeApi.analyzeRecyclables(uri, userId);
+                // FastAPI /detect 엔드포인트 호출
+                const response = await dischargeApi.detectRecyclable(uri);
                 
-                console.log('분석 결과:', response);
+                console.log('감지 결과:', response);
 
-                // 응답 데이터로 바운딩 박스 생성
-                if (response && response.detections) {
-                    const formattedDetections = response.detections.map(det => ({
-                        left: `${det.x}%`,
-                        top: `${det.y}%`,
-                        width: `${det.width}%`,
-                        height: `${det.height}%`,
-                        grade: det.grade,
-                        material: det.material,
-                        color: det.color || '#078C5A'
+                // FastAPI 응답 형식에 맞춰 바운딩 박스 생성
+                if (response && response.items && response.items.length > 0) {
+                    const formattedDetections = response.items.map(item => ({
+                        left: `${item.bbox.x}%`,
+                        top: `${item.bbox.y}%`,
+                        width: `${item.bbox.width}%`,
+                        height: `${item.bbox.height}%`,
+                        grade: item.grade,
+                        material: item.material_type,
+                        color: getColorByGrade(item.grade)
                     }));
                     setDetections(formattedDetections);
                 } else {
-                    // 백엔드 응답이 없을 경우 목 데이터 사용 (개발용)
+                    // 응답이 없을 경우 목 데이터 사용 (개발용)
                     setDetections([
                         { left: '15%', top: '50%', width: '70%', height: '30%', grade: 'A', material: 'PLASTIC', color: '#1b04e3ff' },
                         { left: '20%', top: '13%', width: '78%', height: '30%', grade: 'B', material: 'PAPER', color: '#c26400ff' },
@@ -92,13 +86,24 @@ export default function RecognizeScreen({ navigation }) {
                 }
 
             } catch (error) {
-                console.error('이미지 분석 실패:', error);
+                console.error('이미지 감지 실패:', error);
                 Alert.alert('오류', '이미지 분석에 실패했습니다. 다시 시도해주세요.');
                 setSelectedImage(null);
             } finally {
                 setIsProcessing(false);
             }
         }
+    };
+
+    // Grade에 따른 색상 매핑
+    const getColorByGrade = (grade) => {
+        const colorMap = {
+            'A': '#1b04e3ff', // 파란색
+            'B': '#c26400ff', // 주황색
+            'C': '#d40b0bff', // 빨간색
+            'D': '#666666ff', // 회색
+        };
+        return colorMap[grade] || '#078C5A'; // 기본값: 초록색
     };
 
     const showMaskAndFrame = !selectedImage;
