@@ -201,7 +201,10 @@ export default function HomeScreen({ navigation }) {
             {/* 그린 리그 */}
             <View style={styles.leagueSection}>
                 <View style={styles.leagueHeaderRow}>
-                    <Text style={styles.leagueTitle}><Text style={{ color: '#078C5A', fontSize: 22, fontWeight: '700' }}>10월</Text> 그린 리그</Text>
+                    <Text style={styles.leagueTitle}>
+                        <Text style={{ color: '#078C5A', fontSize: 22, fontWeight: '700' }}>10월 </Text>
+                        그린 리그
+                    </Text>
                 </View>
                 <Text style={styles.leagueDesc}>소속별 평균 점감률(%)을 기준으로 매월 순위를 산정하며, 1위 소속 구성원 전원에게 +100P가 추가 보상이 제공됩니다.</Text>
 

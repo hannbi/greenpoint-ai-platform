@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
   const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
 
   // Kakao 설정 (client_id = REST API KEY)
-  const REST_API_KEY = 'a4ba017d8435dec31b8690f63bb59954';
+  const REST_API_KEY = process.env.REST_API_KEY;
   const KAKAO_DISCOVERY = {
     authorizationEndpoint: 'https://kauth.kakao.com/oauth/authorize',
     tokenEndpoint: 'https://kauth.kakao.com/oauth/token',

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { authApi } from '../services/api/authApi';
+import { organizationApi } from '../services/api/organizationApi';
 import { useApi } from '../hooks/useApi';
 
 export default function SignUpStep3({ navigation, route }) {
@@ -22,6 +23,7 @@ export default function SignUpStep3({ navigation, route }) {
   
   const [organization, setOrganization] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [organizationList, setOrganizationList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [agreeAll, setAgreeAll] = useState(false);
   const [agreeService, setAgreeService] = useState(false);
@@ -30,8 +32,20 @@ export default function SignUpStep3({ navigation, route }) {
 
   // API 훅
   const { execute: signupUser, loading: signupLoading } = useApi(authApi.signup);
+  const { execute: fetchOrganizations, loading: orgLoading } = useApi(organizationApi.getOrganizations);
 
-  const dummyData = ['신도림푸르지오 아파트', '신라호텔', '신한금융그룹', '신한대학교'];
+  // 컴포넌트 마운트 시 조직 목록 가져오기
+  React.useEffect(() => {
+    const loadOrganizations = async () => {
+      try {
+        const data = await fetchOrganizations();
+        setOrganizationList(data || []);
+      } catch (error) {
+        Alert.alert('오류', '조직 목록을 불러오는데 실패했습니다.');
+      }
+    };
+    loadOrganizations();
+  }, []);
 
   const handleInputChange = (text) => {
     setOrganization(text);
@@ -40,7 +54,7 @@ export default function SignUpStep3({ navigation, route }) {
       return;
     }
     // 입력값을 포함한 항목만 필터링
-    const filtered = dummyData.filter((item) => item.includes(text));
+    const filtered = organizationList.filter((item) => item.includes(text));
     setSuggestions(filtered);
   };
 
