@@ -287,7 +287,7 @@ export default function DischargeGuideScreen({ navigation }) {
                     <View style={styles.infoCard}>
                         <View style={styles.infoHeader}>
                             <Text style={styles.infoTitle}>{wasteInfo[selected].title}</Text>
-                            <TouchableOpacity onPress={() => setSelected(null)}>
+                            <TouchableOpacity onPress={() => setSelected(null)}style={styles.closeButton}>
                                 <Text style={{ fontSize: 20, fontWeight: '600' }}>✕</Text>
                             </TouchableOpacity>
                         </View>
@@ -465,10 +465,12 @@ const styles = StyleSheet.create({
     // 상세 모달
     infoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' },
     infoCard: { width: width - 40, backgroundColor: '#fff', borderRadius: 26, padding: 22, maxHeight: '80%' },
-    infoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    infoTitle: { fontSize: 18, fontWeight: '700', color: '#0b0b0b', letterSpacing: -0.3 },
+    infoHeader: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+    infoTitle: { fontSize: 18, fontWeight: '700', color: '#0b0b0b', letterSpacing: -0.3, textAlign: 'center' },
+// ✅ 새로 추가 (infoTitle 바로 아래)
+    closeButton: {position: 'absolute',right: 0,top: 0,padding: 4,},
 
-    tabRow: { flexDirection: 'row', marginTop: 12 },
+    tabRow: { flexDirection: 'row', marginTop: 18 },
     tabChipActive: { backgroundColor: '#078C5A', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginRight: 8 },
     tabChipInactive: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#078C5A', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginRight: 8 },
 
