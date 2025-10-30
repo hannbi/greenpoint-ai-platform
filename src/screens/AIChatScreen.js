@@ -12,31 +12,59 @@ import {
     Image,
     Animated,
     PanResponder,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import aiApi from '../services/api/aiApi';
 
 const { width, height } = Dimensions.get('window');
 
 export default function AIChatScreen({ navigation }) {
     const [message, setMessage] = useState('');
     const [chatHistory, setChatHistory] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const scrollViewRef = useRef();
     const translateY = useRef(new Animated.Value(0)).current;
     const lastGestureDy = useRef(0);
 
-    const handleSend = () => {
-        if (message.trim()) {
-            const newUserMessage = { type: 'user', text: message };
-            setChatHistory(prev => [...prev, newUserMessage]);
+    const handleSend = async () => {
+        if (message.trim() && !isLoading) {
+            const userMessage = message.trim();
+            const newUserMessage = { type: 'user', text: userMessage };
             
-            setTimeout(() => {
+            // 사용자 메시지 추가
+            setChatHistory(prev => [...prev, newUserMessage]);
+            setMessage('');
+            setIsLoading(true);
+            
+            try {
+                // AI API 호출
+                const aiResponse = await aiApi.chat(userMessage);
+                
+                console.log('AI 응답:', aiResponse);
+                
+                // 응답이 객체인 경우 response 필드 추출
+                let responseText = aiResponse;
+                if (typeof aiResponse === 'object' && aiResponse.response) {
+                    responseText = aiResponse.response;
+                }
+                
+                // AI 응답 추가
                 setChatHistory(prev => [...prev, { 
                     type: 'bot', 
-                    text: '분리배출에 대해 궁금하신 점을 알려주시면 자세히 안내해드리겠습니다!' 
+                    text: responseText 
                 }]);
-            }, 500);
-            
-            setMessage('');
+            } catch (error) {
+                console.error('AI 응답 실패:', error);
+                
+                // 에러 메시지 표시
+                setChatHistory(prev => [...prev, { 
+                    type: 'bot', 
+                    text: '죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.' 
+                }]);
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -182,6 +210,18 @@ export default function AIChatScreen({ navigation }) {
                                 </View>
                             ))
                         )}
+                        
+                        {/* 로딩 인디케이터 */}
+                        {isLoading && (
+                            <View style={[styles.messageContainer, styles.botMessage]}>
+                                <View style={[styles.messageBubble, styles.botBubble, styles.loadingBubble]}>
+                                    <ActivityIndicator size="small" color="#fff" />
+                                    <Text style={[styles.messageText, styles.botText, styles.loadingText]}>
+                                        답변 생성 중...
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
                     </ScrollView>
 
                     {/* 입력창 */}
@@ -199,17 +239,21 @@ export default function AIChatScreen({ navigation }) {
                             <TouchableOpacity 
                                 style={[
                                     styles.sendButton,
-                                    message.trim() && styles.sendButtonActive
+                                    message.trim() && !isLoading && styles.sendButtonActive
                                 ]}
                                 onPress={handleSend}
-                                disabled={!message.trim()}
+                                disabled={!message.trim() || isLoading}
                             >
-                                <Text style={[
-                                    styles.sendButtonText,
-                                    message.trim() && styles.sendButtonTextActive
-                                ]}>
-                                    전송
-                                </Text>
+                                {isLoading ? (
+                                    <ActivityIndicator size="small" color="#078C5A" />
+                                ) : (
+                                    <Text style={[
+                                        styles.sendButtonText,
+                                        message.trim() && styles.sendButtonTextActive
+                                    ]}>
+                                        전송
+                                    </Text>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -364,6 +408,16 @@ const styles = StyleSheet.create({
     },
     botText: {
         color: 'rgba(255, 255, 255, 0.95)',
+    },
+    
+    // 로딩 상태
+    loadingBubble: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    loadingText: {
+        marginLeft: 8,
     },
     
     // 입력창

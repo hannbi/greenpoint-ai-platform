@@ -1,17 +1,35 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground, ActivityIndicator, Animated } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ImageBackground, ActivityIndicator, Animated, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import dischargeApi from '../services/api/dischargeApi';
 
 export default function RecognizeScreen({ navigation }) {
 
     const [selectedImage, setSelectedImage] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [detections, setDetections] = useState([]);
+    const [userId, setUserId] = useState(null);
 
     // 안내 바텀시트
     const [showGuide, setShowGuide] = useState(true);
     const [guideStep, setGuideStep] = useState(0);
+
+    // userId 로드
+    useEffect(() => {
+        const loadUserId = async () => {
+            try {
+                const id = await AsyncStorage.getItem('userId');
+                if (id) {
+                    setUserId(id);
+                }
+            } catch (error) {
+                console.error('userId 로드 실패:', error);
+            }
+        };
+        loadUserId();
+    }, []);
 
     const guideImages = [
         require('../../assets/method1.png'),
@@ -37,16 +55,49 @@ export default function RecognizeScreen({ navigation }) {
             const uri = result.assets[0].uri;
             setSelectedImage(uri);
 
+            // userId 확인
+            if (!userId) {
+                Alert.alert('오류', '사용자 정보를 불러올 수 없습니다.');
+                return;
+            }
+
             setIsProcessing(true);
             setDetections([]);
-            setTimeout(() => {
+
+            try {
+                // 백엔드로 이미지 전송
+                const response = await dischargeApi.analyzeRecyclables(uri, userId);
+                
+                console.log('분석 결과:', response);
+
+                // 응답 데이터로 바운딩 박스 생성
+                if (response && response.detections) {
+                    const formattedDetections = response.detections.map(det => ({
+                        left: `${det.x}%`,
+                        top: `${det.y}%`,
+                        width: `${det.width}%`,
+                        height: `${det.height}%`,
+                        grade: det.grade,
+                        material: det.material,
+                        color: det.color || '#078C5A'
+                    }));
+                    setDetections(formattedDetections);
+                } else {
+                    // 백엔드 응답이 없을 경우 목 데이터 사용 (개발용)
+                    setDetections([
+                        { left: '15%', top: '50%', width: '70%', height: '30%', grade: 'A', material: 'PLASTIC', color: '#1b04e3ff' },
+                        { left: '20%', top: '13%', width: '78%', height: '30%', grade: 'B', material: 'PAPER', color: '#c26400ff' },
+                        { left: '18%', top: '40%', width: '35%', height: '12%', grade: 'C', material: 'CAN', color: '#d40b0bff' },
+                    ]);
+                }
+
+            } catch (error) {
+                console.error('이미지 분석 실패:', error);
+                Alert.alert('오류', '이미지 분석에 실패했습니다. 다시 시도해주세요.');
+                setSelectedImage(null);
+            } finally {
                 setIsProcessing(false);
-                setDetections([
-                    { left: '15%', top: '50%', width: '70%', height: '30%', grade: 'A', material: 'PLASTIC', color: '#1b04e3ff' },
-                    { left: '20%', top: '13%', width: '78%', height: '30%', grade: 'B', material: 'PAPER', color: '#c26400ff' },
-                    { left: '18%', top: '40%', width: '35%', height: '12%', grade: 'C', material: 'CAN', color: '#d40b0bff' },
-                ]);
-            }, 1200);
+            }
         }
     };
 

@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://172.17.74.172:8082',
+  baseURL: 'http://10.132.60.124:8000',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
+  withCredentials: false,
 });
 
 apiClient.interceptors.response.use(
