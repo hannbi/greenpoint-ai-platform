@@ -9,7 +9,7 @@ import SignUpStep2 from '../screens/SignUpStep2';
 import SignUpStep3 from '../screens/SignUpStep3';
 import MyPageScreen from '../screens/MyPageScreen';
 import RecognizeScreen from '../screens/RecognizeScreen';
-
+import MapScreen from '../screens/MapScreen';
 import TabNavigator from './TabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -92,6 +92,19 @@ export default function AppNavigator() {
           options={{ headerShown: false }}
         />
 
+        {/* 내 근처 */}
+        <Stack.Screen
+          name="Map"
+          component={MapScreen}
+          options={{
+            title: '내 근처',
+            headerShown: true,
+            headerTitleAlign: 'center',
+            headerTintColor: '#111827',
+            headerStyle: { backgroundColor: '#ffffff' },
+            headerTitleStyle: { fontWeight: '700', fontSize: 20 },
+          }}
+        />
 
 
 

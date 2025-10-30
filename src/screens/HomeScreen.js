@@ -58,7 +58,7 @@ export default function HomeScreen({ navigation }) {
                     </View>
                 </TouchableOpacity>
 
-                {/* 원형 메뉴 */}
+                {/* 원형 메뉴 (개별 이동 그대로) */}
                 <View style={styles.menuRow}>
                     <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('UsePointScreen')}>
                         <View style={styles.circleIcon}>
@@ -162,7 +162,10 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.listSection}>
                 <Text style={styles.sectionTitle}>올바른 배출과 수거 안내</Text>
 
-                <TouchableOpacity style={styles.listItem}>
+                <TouchableOpacity
+                    style={styles.listItem}
+                    onPress={() => navigation.navigate('DischargeGuide')}
+                >
                     <View style={styles.listRow}>
                         <Image source={require('../../assets/exhaustguide_icon.png')} style={styles.listIcon} />
                         <View style={styles.listTextWrap}>
@@ -171,6 +174,7 @@ export default function HomeScreen({ navigation }) {
                         </View>
                     </View>
                 </TouchableOpacity>
+
 
                 <TouchableOpacity style={styles.listItem}>
                     <View style={styles.listRow}>

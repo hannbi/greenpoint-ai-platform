@@ -24,5 +24,10 @@ npm install expo-font expo-asset
 REM LInear Gradient
 npm isntall expo-linear-gradient
 
+REM Camera
+npm install expo-camera
+npm install expo-image-picker
+
+
 echo === 설치 완료! ===
 pause

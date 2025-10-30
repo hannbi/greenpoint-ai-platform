@@ -223,17 +223,6 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     alignItems: 'center',
   },
-  header: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 0,
-    marginBottom: 40,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111827',
-  },
   hello: {
     fontSize: 25,
     fontWeight: '600',
