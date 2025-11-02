@@ -1,7 +1,5 @@
 package com.example.spring.repository;
 
-import com.example.spring.dto.BinRequest;
-import com.example.spring.dto.BinResponse;
 import com.example.spring.entity.Bin;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;

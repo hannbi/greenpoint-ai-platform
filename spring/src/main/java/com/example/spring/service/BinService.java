@@ -38,6 +38,7 @@ public class BinService {
         dto.setImageUrl(c.getImageUrl());
         dto.setType(c.getType());
         dto.setOpen(c.getIsOpen());
+        dto.setLocation(c.getLocation());
         dto.setStatus(c.getStatus());
 
         return dto;

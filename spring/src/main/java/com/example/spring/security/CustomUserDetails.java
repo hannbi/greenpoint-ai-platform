@@ -35,6 +35,10 @@ public class CustomUserDetails implements UserDetails {
     public String getUsername() {
         return String.valueOf(id); // username = userId
     }
+    
+    public Long getMemberId() {
+        return id;
+    }
 
     @Override
     public String getPassword() {

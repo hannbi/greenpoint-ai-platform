@@ -22,4 +22,14 @@ public class UserService {
         }
         return cu;
     }
+
+    public Void updateUser(int id, int point) {
+        Members m = memberRepository.findById(Integer.toUnsignedLong(id)).orElse(null);
+
+        if(m != null) {
+            m.setPoints(m.getPoints() + point);
+            memberRepository.save(m);
+        }
+        return null;
+    }
 }

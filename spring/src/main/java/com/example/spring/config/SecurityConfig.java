@@ -27,7 +27,8 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_APIS = {
             "/auth/email/check", "/auth/email/send", "/auth/email/verify", "/auth/signup",
-            "/auth/login", "/auth/refresh", "/auth/logout", "/auth/social/kakao", "/user/info/"
+            "/auth/login", "/auth/refresh", "/auth/logout", "/auth/social/kakao", "/user/info/",
+            "/discharge/analyze-test", "/discharge/image/**", "/discharge/analyze", "/discharge/analyze-upload"
     };
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {

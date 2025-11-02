@@ -1,5 +1,6 @@
 package com.example.spring.controller;
 
+import com.example.spring.dto.PointRequest;
 import com.example.spring.security.JwtTokenProvider;
 import com.example.spring.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,5 +18,11 @@ public class UserController {
     @GetMapping("/info")
     public ResponseEntity<?> getInfo(@RequestParam Long id) {
         return ResponseEntity.ok(userService.getUser(id));
+    }
+
+    @PostMapping("/add-point")
+    public ResponseEntity<?> addPoint(@RequestBody PointRequest req) {
+        userService.updateUser(req.getId(), req.getPoint());
+        return ResponseEntity.ok().build();
     }
 }
