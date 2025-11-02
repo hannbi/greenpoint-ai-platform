@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: spring
+
+  security:
+    user:
+      name: admin
+      password: 1234
+
+  datasource:
+    url: ${SPRING_DATA_DB_URL}
+    username: ${SPRING_DATA_DB_USERNAME}
+    password: ${SPRING_DATA_DB_PASSWORD}
+    driver-class-name: ${SPRING_DATA_DB_DRIVER}
+
+  config:
+    import: optional:file:.env[.properties]
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_FROM}
+    password: ${EMAIL_APP_KEY}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8082
+
+#env로 변환
+kakao:
+  client-id: YOUR_REST_API_KEY
+  client-secret: "" # 쓰면 입력
+  token-uri: https://kauth.kakao.com/oauth/token
+  userinfo-uri: https://kapi.kakao.com/v2/user/me
+
+# FastAPI 서버 설정
+fastapi:
+  url: ${FASTAPI_URL:http://localhost:8000}
