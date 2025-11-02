@@ -4,7 +4,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dischargeApi from '../services/api/dischargeApi';
-import apiClient from '../services/api/apiClient';
 import RecognitionResultBottomSheet from './RecognitionResultBottomSheet';
 
 export default function RecognizeScreen({ navigation }) {
@@ -12,7 +11,6 @@ export default function RecognizeScreen({ navigation }) {
     const [selectedImage, setSelectedImage] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [userId, setUserId] = useState(null);
-    const [userPoints, setUserPoints] = useState(0);
     
     // 결과 바텀시트 상태
     const [showResultSheet, setShowResultSheet] = useState(false);
@@ -22,26 +20,20 @@ export default function RecognizeScreen({ navigation }) {
     const [showGuide, setShowGuide] = useState(true);
     const [guideStep, setGuideStep] = useState(0);
 
-    // userId 및 포인트 로드
+    // userId 로드
     useEffect(() => {
-        loadUserData();
-    }, []);
-
-    const loadUserData = async () => {
-        try {
-            const id = await AsyncStorage.getItem('userId');
-            if (id) {
-                setUserId(id);
-                // 사용자 정보 조회하여 포인트 가져오기
-                const response = await apiClient.get(`/user/${id}`);
-                if (response.data && response.data.point !== undefined) {
-                    setUserPoints(response.data.point);
+        const loadUserId = async () => {
+            try {
+                const id = await AsyncStorage.getItem('userId');
+                if (id) {
+                    setUserId(id);
                 }
+            } catch (error) {
+                console.error('userId 로드 실패:', error);
             }
-        } catch (error) {
-            console.error('사용자 데이터 로드 실패:', error);
-        }
-    };
+        };
+        loadUserId();
+    }, []);
 
     const guideImages = [
         require('../../assets/method1.png'),
@@ -160,7 +152,7 @@ export default function RecognizeScreen({ navigation }) {
 
                 <View style={styles.pointBox}>
                     <Image source={require('../../assets/coin.png')} style={styles.coinIcon} />
-                    <Text style={styles.pointText}>{userPoints.toLocaleString()} P</Text>
+                    <Text style={styles.pointText}>32,600 P</Text>
                 </View>
             </View>
 
@@ -234,11 +226,7 @@ export default function RecognizeScreen({ navigation }) {
             {/* 인식 결과 바텀시트 */}
             <RecognitionResultBottomSheet
                 visible={showResultSheet}
-                onClose={() => {
-                    setShowResultSheet(false);
-                    // 바텀시트가 닫힐 때 포인트 갱신
-                    loadUserData();
-                }}
+                onClose={() => setShowResultSheet(false)}
                 recognitionData={recognitionResults}
             />
 

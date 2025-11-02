@@ -15,7 +15,7 @@ const dischargeApi = {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    image_name: "image1.jpg"  // "image1.jpg"
+                    image_name: "image2.jpg"  // "image1.jpg"
                 }),
             });
 
