@@ -80,7 +80,7 @@ public class EmailVerificationService {
             MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
             helper.setFrom(from);         // Gmail이면 로그인 계정과 동일 권장
             helper.setTo(email);
-            helper.setSubject("[IT-DA] 이메일 인증 코드");
+            helper.setSubject("[GreenPoint] 이메일 인증 코드");
             helper.setText(html, true);   // ← HTML on
 
             // (선택) 인라인 이미지

@@ -44,10 +44,11 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
 
     private static final long RT_TTL_SEC = Duration.ofDays(30).toSeconds();
+    private final JwtTokenProvider jwtTokenProvider;
 
 
     @Transactional
-    public void signup(SignupRequest request, String uaNow, String ipNow) {
+    public void signup(SignupRequest request, String uaNow, String ipNow, String provider) {
         final String email = request.email().trim().toLowerCase(Locale.ROOT); //<- Locale.ROOT 뭔지 찾아봐야함
         final String key = "email:verify:ok:" + request.ticket();
 
@@ -82,9 +83,13 @@ public class AuthService {
                 .email(email)
                 .pwd(pe.encode(request.password()))
                 .name(request.name())
-                .nickname("퍼즐이")
+                .nickname(request.nickname())
                 .profile("default.png")
                 .role("ROLE_USER")
+                .org(request.org())
+                .tier_id(1)
+                .points(0)
+                .signupProvider(provider)
                 .build();
 
         redis.delete(key);
@@ -104,18 +109,24 @@ public class AuthService {
         Long userId;
         String nickname;
         List<String> roles;
+        int points;
+        int user_tier;
         if (principal instanceof CustomUserDetails cud) {
             userId = cud.getId();
             nickname = cud.getNickname();
             roles = cud.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            points = cud.getPoints();
+            user_tier = cud.getTier_id();
         } else {
             userId = Long.valueOf(auth.getName());
             nickname = membersRepository.findNicknameById(userId).orElse("퍼즐이");
             roles = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            points = 0;
+            user_tier = 1;
         }
 
         // AT 생성
-        String accessToken = jwt.createAccessToken(userId, nickname, roles);
+        String accessToken = jwt.createAccessToken(userId, nickname, roles,points, user_tier);
 
         // RT 생성 & Redis 저장 (원문은 클라로, 서버에는 해시)
         String deviceId = deviceIdCookie != null ? deviceIdCookie : UUID.randomUUID().toString();
@@ -142,8 +153,8 @@ public class AuthService {
 
         // 새 AT
         var roles = jwt.getRoles(oldAccessToken);
-        String nickname = membersRepository.findNicknameById(userId).orElse("퍼즐이"); //닉네임 변경을 대비한 데이터베이스 조회
-        String newAccessToken = jwt.createAccessToken(userId, nickname, roles);
+        Members member = membersRepository.findById(userId).orElse(null); //닉네임 변경을 대비한 데이터베이스 조회
+        String newAccessToken = jwt.createAccessToken(userId, member.getNickname(), roles, member.getPoints(), member.getTier_id());
 
         return new AuthResult(userId, deviceId, newAccessToken, newRefreshToken, null, roles);
     }
@@ -151,6 +162,46 @@ public class AuthService {
     public void logout(String accessToken, String deviceId) {
         Long userId = jwt.getUserId(accessToken);
         refreshTokenService.logoutOne(userId, deviceId);
+    }
+
+    @Transactional
+    public AuthResult issueTokensFor(Long userId, String deviceId, String userAgent, String ip) {
+        Members m = membersRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("user not found: " + userId));
+
+        List<String> roles = List.of(m.getRole().split(" "));
+
+        String accessToken = jwt.createAccessToken(
+                m.getId(),
+                m.getNickname(),
+                roles,
+                m.getPoints(),
+                m.getTier_id()
+        );
+
+        String finalDeviceId = (deviceId != null && !deviceId.isBlank())
+                ? deviceId
+                : UUID.randomUUID().toString();
+
+        String refreshToken = UUID.randomUUID() + "." + UUID.randomUUID();
+        String rtJti = refreshTokenService.issue(
+                userId,              // 대상 사용자
+                finalDeviceId,       // 디바이스 ID
+                refreshToken,        // 원문 RT
+                RT_TTL_SEC,          // TTL (네 상수 그대로)
+                userAgent,           // UA
+                ip                   // IP
+        );
+
+
+        return new AuthResult(
+                userId,
+                finalDeviceId,
+                accessToken,
+                refreshToken,
+                rtJti,
+                roles
+        );
     }
 
     // 전체 로그아웃

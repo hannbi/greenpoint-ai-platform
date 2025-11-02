@@ -27,13 +27,15 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createAccessToken(Long userId, String nickname, List<String> roles) {
+    public String createAccessToken(Long userId, String nickname, List<String> roles, int points, int user_tier) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())                  // jti
                 .setSubject(String.valueOf(userId))
                 .claim("roles", roles)
                 .claim("nickname", nickname)
+                .claim("points", points)
+                .claim("user_tier", user_tier)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_TTL_MS))
                 .signWith(key, SignatureAlgorithm.HS256)
